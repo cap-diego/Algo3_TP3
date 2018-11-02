@@ -6,9 +6,41 @@
 
 #IncludeRegexTransform: 
 
+C:/Users/diego/Documents/Facultad/AED 3/Labor/TP3/codigo/cluster.h
+iostream
+-
+vector
+-
+climits
+-
+cstring
+-
+algorithm
+-
+cmath
+-
+limits
+-
+utility
+-
+cstdio
+-
+queue
+-
+list
+-
+random
+-
+
 C:/Users/diego/Documents/Facultad/AED 3/Labor/TP3/codigo/main.cpp
 iostream
 -
+cluster.h
+C:/Users/diego/Documents/Facultad/AED 3/Labor/TP3/codigo/cluster.h
+utility
+-
 fstream
+-
+random
 -
 
