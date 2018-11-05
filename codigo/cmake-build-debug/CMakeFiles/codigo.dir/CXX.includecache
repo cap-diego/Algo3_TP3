@@ -41,6 +41,10 @@ utility
 -
 fstream
 -
+queue
+-
+tuple
+-
 random
 -
 

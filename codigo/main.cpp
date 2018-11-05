@@ -2,11 +2,17 @@
 #include "cluster.h"
 #include <utility>
 #include <fstream>
+#include <queue>
+#include <tuple>
 #include <random>
 
 using namespace std;
 
 float distancia_euclidea(float x1,float y1, float x2, float y2);
+void mostrar_cluster(vector<pair<int, float> >& demandas_cluster);
+tuple<int,  float, Nodo> min_vecino_nodo(vector<Nodo>& nodos, int indice , vector<bool>& marc);
+pair<vector<Nodo>,float> TSP(vector<Nodo> & vector_nodos, vector<Nodo> & cluster);
+int MAX_X, MAX_Y;
 
 int main() {
 
@@ -16,10 +22,11 @@ int main() {
     float pos_max_x = 0, pos_max_y = 0;
     float demanda_total = 0;
     ifstream fin;
-    fin.open("../X-n110-k13.txt");
+    fin.open("../X-n110-k13.vrp.txt");
 
     if (fin.is_open()) {
         fin >> cantidad_nodos >> capacidad_camion;
+        cout <<cantidad_nodos<<","<<capacidad_camion<<endl;
         for (int i = 0; i < cantidad_nodos; ++i) {
             Nodo n;
             fin >> (n.indice) >> n.x >> n.y;
@@ -34,19 +41,22 @@ int main() {
             fin >> indice >> vector_nodos[j].demanda;
             demanda_total += vector_nodos[j].demanda;
         }
-    } else
-        cout << "Error" << endl;
+    } else{
+        cout << "Error" << endl; exit(0);
+    }
 
-    cout << "La demanda total es : " << demanda_total << endl << "Y el promedio es: " << demanda_total << " casi:"
-         << cantidad_nodos << endl;
+
+    MAX_X = pos_max_x;
+    MAX_Y = pos_max_y;
+    cout << "La demanda total es : " << demanda_total << endl << "Y el promedio es: " << demanda_total/cantidad_nodos<< endl;
 
     //Aca digo que los k-vecinos deberian ser:
     float cantidad_clientes_puede_visitar_camion = capacidad_camion / (demanda_total / cantidad_nodos);
     //cantDespuesDeComa(cantidad_clientes_puede_visitar_camion,2);
     cout << "Cant clientes que puede visitar: " << cantidad_clientes_puede_visitar_camion << "/"
          << ceil(cantidad_clientes_puede_visitar_camion) << endl;
-    int cant_cam = ceil(cantidad_nodos / ceil(cantidad_clientes_puede_visitar_camion)) + 1;//Sumo uno porque el deposito va a tener propio cluster ( y cada cluster sería como un camion)
-    cout << "Cantidad de camiones: " << cant_cam << endl;
+    int cant_cam = floor(cantidad_nodos / ceil(cantidad_clientes_puede_visitar_camion))+1;//Sumo uno porque el deposito va a tener propio cluster ( y cada cluster sería como un camion)
+    cout << "Cantidad de camiones: " << cant_cam<< endl;
     //Determinar k crontrides random
     //O(cant clusters * #iteraciones * #instancias * #dim=2)
 
@@ -60,7 +70,7 @@ int main() {
         centroides[l].x = dist6_x(rng);
         std::uniform_int_distribution<std::mt19937::result_type> dist6_y(0, pos_max_y);
         centroides[l].y = dist6_y(rng);
-        cout << "Centroide " << l << " nodo: (x:" << centroides[l].x << " , y:" << centroides[l].y << ")" << endl;
+        //cout << "Centroide " << l << " nodo: (x:" << centroides[l].x << " , y:" << centroides[l].y << ")" << endl;
     }
 
     vector<pair<int, float> > cluster(cantidad_nodos, make_pair(-1, 0)); //indice, demanda
@@ -88,7 +98,7 @@ int main() {
                         if (coord.first == 0 && vector_nodos[k].y >= coord.second) {
                             if (cluster[k].first == -1 ||
                                 distancia_euclidea(vector_nodos[k].x, vector_nodos[k].y, centroides[i].x, centroides[i].y) <
-                                cluster[k].second) {//Si el nuevo cluster al que puede pertenecer esta mas cerca del que ya pertenece o si no pertenece a ninguno, entonces asigno cluster
+                                cluster[k].second) {//Si el nuevo centroide cluster al que puede pertenecer esta mas cerca del que ya pertenece o sino pertenece a ninguno, entonces asigno cluster
                                 cluster[k].first = i;//centroides[i].indice; //Centroide al que pertenece
                                 cluster[k].second = distancia_euclidea(vector_nodos[k].x, vector_nodos[k].y,
                                                                        centroides[i].x,
@@ -149,7 +159,7 @@ int main() {
                 centroides[i].y = avg_y;
                 centroides[i].indice = i;
             }
-            cout << "Centroide " << centroides[i].indice<<"/"<<i << " nodo: (x:" << centroides[i].x << " , y:" << centroides[i].y << ")" << endl;
+            //cout << "Centroide " << centroides[i].indice<<" nodo: (x:" << centroides[i].x << " , y:" << centroides[i].y << ")" << endl;
         }
     }
 
@@ -157,7 +167,7 @@ int main() {
     vector<pair<int, float> > demandas_cluster(cant_cam,make_pair(-1,0)); //first=indice cluster, second=demanda
     vector<int> cluster_con_exceso;
 
-    for (int i = 1; i < cant_cam; ++i) { //Empiezo en 1 porque el 0 es el cluter del deposito
+    for (int i = 0; i < cant_cam; ++i) { //Empiezo en 1 porque el 0 es el cluter del deposito
         float acum=0;
         for (int j = 1; j < cantidad_nodos; ++j) {
             if(cluster[j].first == i) { //Si el nodo j tiene como cluster al i
@@ -186,50 +196,135 @@ int main() {
     }*/
 
 
-    for (int i = 1; i < cant_cam; ++i) {
-        cout  <<"Cluster: "<<demandas_cluster[i].first<<"/"<<i<<" demanda: "<< demandas_cluster[i].second<<endl;
-    }
+    mostrar_cluster(demandas_cluster);
 
     cout <<"Clusters con exceso: "<< cluster_con_exceso.size()<<endl;
-
-    for (int m = 1; m < cantidad_nodos; ++m) {
-        for (int n = 0; n < cluster_con_exceso.size(); ++n) {
-            if(cluster[m].first == cluster_con_exceso[n]){ //Si nodo actual esta en cluster con exceso lo muevo a otro
-                int indice_nuevo_cluster=cluster[m].first, cant_pruebas=0;
-                while (indice_nuevo_cluster < demandas_cluster.size() || demandas_cluster[cluster[m].first].second<capacidad_camion){
-                    std::uniform_int_distribution<std::mt19937::result_type> ind_aleat(demandas_cluster.size()-1-cluster_con_exceso.size(),demandas_cluster.size()-1);
-                    //cout <<"ind generado: "<< indice_nuevo_cluster<<endl;
-
-                    if(demandas_cluster[indice_nuevo_cluster].second + vector_nodos[m].demanda > capacidad_camion){ //Si mover a este cluster no me sirve
-                        indice_nuevo_cluster=-1;
-                    }else {
-                        cout<<"Muevo el nodo "<<m<< " de demanda "<< vector_nodos[m].demanda<< " (cluster "<<cluster[m].first<<"/"<<demandas_cluster[cluster[m].first].first<<") hacia cluster "<<demandas_cluster[indice_nuevo_cluster].first<<endl;
-                        demandas_cluster[indice_nuevo_cluster].second+=vector_nodos[m].demanda;
-                        demandas_cluster[cluster[m].first].second -= vector_nodos[m].demanda;
-                        cluster[m].first = demandas_cluster[indice_nuevo_cluster].first;
+    int cantExceso=cluster_con_exceso.size();
+    int intentos = 0;
+    while(cantExceso>0 && intentos<=cant_cam){
+        cout <<"Intentos: "<< intentos<<endl;
+        for (int m = 1; m < cantidad_nodos; ++m) {
+            for (int n = 0; n < cluster_con_exceso.size(); ++n) {
+                if(cluster[m].first == cluster_con_exceso[n]){ //Si nodo actual esta en cluster con exceso lo muevo a otro
+                    int indice_nuevo_cluster=1, indice_cluster_modificado = cluster[m].first;
+                    while (indice_nuevo_cluster < demandas_cluster.size() && demandas_cluster[cluster[m].first].second>capacidad_camion){
+                        //cout <<"ind generado: "<< indice_nuevo_cluster<<endl;
+                        //cout << indice_nuevo_cluster<<"-"<<endl;
+                        //cout<<"Cluster demanda en que estoy "<<demandas_cluster[cluster[m].first].second<<" Cluster al q quiero mover: "<<demandas_cluster[indice_nuevo_cluster].second<<" Mover: " << vector_nodos[m].demanda<<endl;
+                        if(demandas_cluster[indice_nuevo_cluster].second + vector_nodos[m].demanda > capacidad_camion){ //Si mover a este cluster no me sirve
+                        }else {
+                            //cout << indice_nuevo_cluster<<endl;
+                            //cout<<"Muevo el nodo "<<m<< " de demanda "<< vector_nodos[m].demanda<< " (cluster "<<cluster[m].first<<"/"<<demandas_cluster[cluster[m].first].first<<") hacia cluster "<<demandas_cluster[indice_nuevo_cluster].first<<endl;
+                            demandas_cluster[indice_nuevo_cluster].second+=vector_nodos[m].demanda;
+                            demandas_cluster[cluster[m].first].second -= vector_nodos[m].demanda;
+                            cluster[m].first = demandas_cluster[indice_nuevo_cluster].first;
+                        }
+                        //cout <<"Finalmente indice cluste: "<<indice_nuevo_cluster<<" demanda cluster act: "<<demandas_cluster[cluster[m].first].second<<endl;
+                        indice_nuevo_cluster++;
                     }
-                    indice_nuevo_cluster++;
+                    if(demandas_cluster[indice_cluster_modificado].second<=capacidad_camion) {
+                        cluster_con_exceso[n]=-1;
+                        cantExceso--;
+                    }//Ya no tiene exceso
                 }
-                if(demandas_cluster[cluster[m].first].second<=capacidad_camion) {
-                    cluster_con_exceso[n]=-1;
-                }//Ya no tiene exceso
             }
         }
+        intentos++;
     }
 
-    for (int i = 0; i < demandas_cluster.size(); ++i) {
-        cout  <<"Cluster: "<<demandas_cluster[i].first<<" demanda: "<< demandas_cluster[i].second<<endl;
+
+    mostrar_cluster(demandas_cluster);
+    //DIVIDO LOS CLUSTER
+    vector<vector<Nodo> > nodos_clusterizados;
+    nodos_clusterizados.resize(cant_cam);
+    for (int i = 0; i < cant_cam; ++i) {
+        nodos_clusterizados[i].push_back(vector_nodos[0]);
     }
+    for (int i = 1; i < vector_nodos.size(); ++i) {
+        nodos_clusterizados[cluster[i].first].push_back(vector_nodos[i]);
+    }
+
+    cout <<"Asi queda clusterizado: "<<endl;
+    for (int i = 0; i < cant_cam; ++i) {
+        cout <<"CLUSTER "<< i<<endl;
+        for (int j = 0; j < nodos_clusterizados[i].size(); ++j) {
+            cout << nodos_clusterizados[i][j].indice<<" , ";
+        }
+        cout <<endl;
+    }
+
+    //HAOGO TSP PARA CADA CLUSTER
+    float costo_total=0;
+    for (int i = 0; i < cant_cam; ++i) {
+        cout <<"REALIZO TSP PARA CLUSTER: "<<i<<endl;
+        pair<vector<Nodo>,float > tour = TSP(nodos_clusterizados[i],vector_nodos);
+        cout <<"El camino es: "<<endl;
+        for (int j = 0; j <tour.first.size() ; ++j) {
+            cout <<tour.first[j].indice<<"-";
+        }
+        cout <<endl;
+        cout <<"Costo del camino: "<<tour.second<<endl;
+        costo_total +=tour.second;
+   }
+    cout <<"Y tiene costo :"<<costo_total<<endl;
 
     //EXPORTO SOLUCION PARA HACER TSP
     ofstream fout;
-    fout.open("../X-n110-k13.csv");
+    fout.open("../P-n76-k4.csv");
     for (int i = 0; i < cluster.size(); ++i) {
         fout<< (i+1)<<"," << vector_nodos[i].x<<","<<vector_nodos[i].y<<","<<cluster[i].first<<endl;
     }
     fout.close();
     return 0;
 }
+
+tuple<int, float, Nodo> min_vecino_nodo(vector<Nodo>& nodos, int indice , vector<bool>& marc){
+    float min = distancia_euclidea(0,0,MAX_X,MAX_Y);
+    int posMin = 0;
+    Nodo n = nodos[0];
+    for (int i = 0; i < nodos.size(); ++i) {
+        //cout <<"Buscando sup: "<<sup_a<<" y actual es: "<<distancia_euclidea(nodos[indice].x, nodos[indice].y,nodos[i].x,nodos[i].y)<<" y min es: "<<min<<endl;
+        if( marc[i] != true && i != indice && min > distancia_euclidea(nodos[indice].x, nodos[indice].y,nodos[i].x,nodos[i].y)){
+            min = distancia_euclidea(nodos[indice].x, nodos[indice].y,nodos[i].x,nodos[i].y);
+            posMin = i;
+            n = nodos[i];
+        }
+    }
+    return make_tuple(posMin,min,n);
+
+}
+
+pair<vector<Nodo>,float> TSP(vector<Nodo> & nodos_cluster, vector<Nodo>& vector_nodos) {
+
+    pair<vector<Nodo>, float> circuito_hamiltoniano;
+    circuito_hamiltoniano.second = 0;
+    circuito_hamiltoniano.first.push_back(nodos_cluster[0]);
+    vector<bool> nodos_marcados(nodos_cluster.size(),false);
+    tuple<int,float,Nodo> mas_cercano;
+    int i = 0;
+    while(i < nodos_cluster.size()) {
+        if(nodos_marcados[i] == false){
+            nodos_marcados[i] = true;
+            mas_cercano = min_vecino_nodo(nodos_cluster, i, nodos_marcados);
+            mas_cercano = min_vecino_nodo(nodos_cluster, i,nodos_marcados);
+            i = get<0>(min_vecino_nodo(nodos_cluster, i,nodos_marcados));
+            circuito_hamiltoniano.second += get<1>(mas_cercano);
+            circuito_hamiltoniano.first.push_back(get<2>(mas_cercano));
+        }else i++;
+    }
+    Nodo ultAg = circuito_hamiltoniano.first[circuito_hamiltoniano.first.size()-1];
+    circuito_hamiltoniano.second += distancia_euclidea(ultAg.x,ultAg.y,nodos_cluster[0].x,nodos_cluster[0].y);
+    circuito_hamiltoniano.first.push_back(nodos_cluster[0]);
+    return circuito_hamiltoniano;
+}
+
+
+void mostrar_cluster(vector<pair<int, float> >& demandas_cluster){
+    for (int i = 0; i < demandas_cluster.size(); ++i) {
+        cout  <<"Cluster: "<<demandas_cluster[i].first<<" demanda: "<< demandas_cluster[i].second<<endl;
+    }
+}
+
 
 float distancia_euclidea(float x1,float y1, float x2, float y2) {
     float dif_x = x1-x2;

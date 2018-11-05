@@ -157,7 +157,7 @@ def graficarNodos(nombre):
 
     print("Cantidad de clusters" , len(dic_colores))
 def main():
-    nombre_archivo = "X-n110-k13"
+    nombre_archivo = "P-n76-k4"
     graficarNodos(nombre_archivo)
     plt.show()
 

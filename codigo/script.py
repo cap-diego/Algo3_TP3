@@ -2,7 +2,6 @@ import sys
 
 def convertir_para_c(nombre_test):
     nombre_file_c = str(nombre_test)+".txt"
-    nombre_test += ".vrp"
     try:
         fin = open(nombre_test,"r")
     except IOError:
@@ -33,7 +32,7 @@ def convertir_para_c(nombre_test):
     capacidad = capacidad.join(cap)
     fin.close()
 
-    fin = open("X/"+nombre_test,"r")
+    fin = open(nombre_test,"r")
     #Escribo en archivo de salida la capacida y la DIMENSION
     fout.write(str(dimen)+" " + capacidad+"\n")
 
