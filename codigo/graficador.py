@@ -192,6 +192,8 @@ def main():
         graficarNodos(nombre_archivo)
         plt.show()
         graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo0")
+
+        plt.show()
         graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo1")
         graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo2")
         graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo3")

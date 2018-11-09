@@ -11,10 +11,11 @@
 
 using namespace std;
 
-vector<Nodo> aux_tsp(const vector<Nodo>&, int pos,float costo);
-float tsp(const vector<vector<float> >& dist_entre_nodos, int pos, int visitados, vector<vector<float>>& costos, vector<vector<Nodo> >& sol, const vector<Nodo>& nodos);
+float aux_tsp(const vector<Nodo>&, int pos);
+float tsp(const vector<vector<float> >& dist_entre_nodos, int pos, long long int visitados, vector<vector<float>>& costos, const vector<Nodo>& nodos);
 
-vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje);
+vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p);
+vector<Nodo> tsp_con_grasp(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p);
 
 int MAX_X, MAX_Y;
 Nodo deposito;
@@ -251,15 +252,10 @@ public:
     }
     void agregar_nodo_a_cluster(Nodo &n, int icluster){
         if(cluster_de_nodo[n.indice] != -1) {
-            //si ya pertenece a un cluster, antes de meterlo en otro necesito borrarlo de donde esta
-            //entonces lo elimino del que esta
-            //cout <<"Quiero agregar nodo " <<n.indice<<" a cluster: "<<icluster<<" y actual en cluster:" <<cluster_de_nodo[n.indice]<<endl;
             clusters[cluster_de_nodo[n.indice]].eliminar_nodo(n);
         }
         cluster_de_nodo[n.indice] = icluster;
         clusters[icluster].agregar_nodo(n);
-        //y modifico el cluster del nodo
-
     }
     bool nodo_tiene_cluster(int i) {
         if(cluster_de_nodo[i]==-1){
@@ -407,7 +403,6 @@ int main() {
         int centroides_iguales = 0;
         while(centroides_iguales!= cant_cam){
             centroides_iguales = 0;
-            cout <<centroides_iguales<<endl;
             for (int i = 0; i < cant_cam; ++i) { //Repito por cada cluster
                 for (int j = 0; j < cant_cam; ++j) {
                     if (j != i) {
@@ -422,7 +417,7 @@ int main() {
                                     if(vector_nodos[k].demanda + clusterizacion.getClusterIesimo(i).getCargaActual() > capacidad_camion){
                                         int nodo_lejano = clusterizacion.getClusterIesimo(i).nodo_mas_lejano(vector_nodos[k].demanda);
                                         if( clusterizacion.getClusterIesimo(i).distancia_de_nodo_al_centro(vector_nodos[nodo_lejano]) > distancia_euclidea(vector_nodos[k].x,vector_nodos[k].y,clusterizacion.getClusterIesimo(i).getX(),clusterizacion.getClusterIesimo(i).getY()) && vector_nodos[k].demanda + clusterizacion.getClusterIesimo(i).getCargaActual() - vector_nodos[nodo_lejano].demanda <= capacidad_camion){
-                                            clusterizacion.getClusterIesimo(i).eliminar_nodo(vector_nodos[k]);
+                                            clusterizacion.getClusterIesimo(i).eliminar_nodo(vector_nodos[nodo_lejano]);
                                             clusterizacion.agregar_nodo_a_cluster(vector_nodos[k],i);
                                         }else {
 
@@ -441,7 +436,7 @@ int main() {
                                         if(vector_nodos[k].demanda + clusterizacion.getClusterIesimo(j).getCargaActual() > capacidad_camion){
                                             int nodo_lejano = clusterizacion.getClusterIesimo(j).nodo_mas_lejano(vector_nodos[k].demanda);
                                             if( clusterizacion.getClusterIesimo(j).distancia_de_nodo_al_centro(vector_nodos[nodo_lejano]) > distancia_euclidea(vector_nodos[k].x,vector_nodos[k].y,clusterizacion.getClusterIesimo(j).getX(),clusterizacion.getClusterIesimo(j).getY()) && vector_nodos[k].demanda + clusterizacion.getClusterIesimo(j).getCargaActual() - vector_nodos[nodo_lejano].demanda <= capacidad_camion){
-                                                clusterizacion.getClusterIesimo(j).eliminar_nodo(vector_nodos[k]);
+                                                clusterizacion.getClusterIesimo(j).eliminar_nodo(vector_nodos[nodo_lejano]);
                                                 clusterizacion.agregar_nodo_a_cluster(vector_nodos[k],j);
                                             }else {
 
@@ -496,11 +491,8 @@ int main() {
             }
         }
 
-    cout <<"ANTES DE CONTROLAR EXCESOS"<<endl;
-
-    clusterizacion.mostrar_clusters_completo();
-    clusterizacion.generar_csv(nombre_in+"antes");
-
+    clusterizacion.generar_csv(nombre_in);
+    clusterizacion.mostrar_clusters();
 
     //Ahora me fijo que no exista un cluster que sobrepase de demanda para el camion
 
@@ -525,28 +517,11 @@ int main() {
         cant_cam++;
     }
 
-/*
-    for (int m = 0; m < cluster_con_exceso.size(); ++m) {
-        if(cluster_con_exceso[m] != -1) {
-            //Recorro los nodos y  los mando hacia el cluster mas cercano que los pueda contener
-            for (auto& v : clusterizacion.getClusterIesimo(m).getNodos()) {
-                int nearest_cluster = clusterizacion.cluster_mas_cercano_a_nodo(v);
-                if(clusterizacion.getClusterIesimo(nearest_cluster).getCargaActual() + v.demanda < capacidad_camion) {
-                    //si puede el cluster mas cercano albergar a v
-                    clusterizacion.agregar_nodo_a_cluster(v,nearest_cluster);
-                }
-            }
-        }
-    }*/
-
-    cout <<"DESPUES DE SACAR EXCESOS "<<endl;
-    clusterizacion.mostrar_clusters();
-    clusterizacion.generar_csv(nombre_in);
-
-
     float costo_viaje = 0;
-
+    float ctsp2=0;
+    vector<vector<Nodo> > mat(clusterizacion.cant_clusters());
     for (int i = 0; i < clusterizacion.cant_clusters(); ++i) {
+        cout <<"cant nodos del cluster:"<<clusterizacion.getClusterIesimo(i).getCantNodos()<<endl;
         vector<Nodo> nodos = clusterizacion.getClusterIesimo(i).getNodos();
         vector<Nodo> nodos_con_dep(nodos.size()+1);
         nodos_con_dep[0] = deposito;
@@ -554,14 +529,16 @@ int main() {
             nodos_con_dep[j + 1] = nodos[j];
         }
         cout <<"Ruteo " << i<<endl;
-        vector<Nodo> camino = tsp2(nodos_con_dep,(i),costo_viaje);
+        vector<Nodo> camino = tsp_con_grasp(nodos_con_dep,0,costo_viaje,1);
         for(auto c:camino){
             cout <<c.indice<<" , ";
         }
         cout <<endl;
+        ctsp2+=costo_viaje;
         exportar_grafo(camino,costo_viaje,i,nombre_in);
     }
-    cout <<"Costo total: "<<costo_viaje<<endl;
+    cout <<"Costo total: "<<ctsp2<<endl;
+
 
 
     return 0;
@@ -581,12 +558,17 @@ void exportar_grafo(vector<Nodo>& camino, float costo,int ruteo, string in){
     fout.close();
 }
 
-vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje){
+vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p){
     vector<Nodo> camino;
      //contiene los nodos del cluster
     vector<vector<float> > distancias_entre_nodos;
     vector<bool> visitados(nodos.size(),false);
     distancias_entre_nodos.resize(nodos.size());
+
+    std::mt19937 rng;
+    rng.seed(std::random_device()());
+    std::uniform_int_distribution<std::mt19937::result_type> proba_p(0,1);
+
     for (int i = 0; i < nodos.size(); i++) {
         distancias_entre_nodos[i].resize(nodos.size());
         for (int j = 0; j < nodos.size(); ++j) {
@@ -598,23 +580,38 @@ vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje){
     }
 
     bool hay_nodos = true;
-    int act = 0;
-    camino.push_back(nodos[0]);
+    int act = nodo_comienzo;
+    int posible_nodo = -1;
+    camino.push_back(nodos[nodo_comienzo]);
     while(hay_nodos){
         visitados[act] = true;
         float minDist = MAX_X*MAX_Y;
         int posMin = -1;
         for (int i = 0; i < nodos.size(); ++i) {
-            if( i!= act && visitados[i]==false && minDist > distancias_entre_nodos[act][i]){
-                minDist = distancias_entre_nodos[act][i];
-                posMin = i;
+            if(i!= act && visitados[i]==false){
+                posible_nodo = i;
+            }
+            if( i!= act && visitados[i]==false && minDist > distancias_entre_nodos[act][i] && proba_p(rng)<=p){
+                if(proba_p(rng) <= p) {
+                    minDist = distancias_entre_nodos[act][i];
+                    posMin = i;
+                }else{
+                    if(posible_nodo == -1) { //significa que no hay todavia no no visitado al que pueda ir, entonces decido ir al minimo (porque a priori no tengo otra pc)
+                        minDist = distancias_entre_nodos[act][i];
+                        posMin = i;
+                    }else {
+                        minDist = distancias_entre_nodos[act][posible_nodo];
+                        posMin = posible_nodo;
+                    }
+                }
+
             }
         }
         if(posMin == -1) { //Significa que no hay mas que visitar
             hay_nodos= false;
-            costo_viaje += distancias_entre_nodos[act][0];
+            costo_viaje += distancias_entre_nodos[act][nodo_comienzo];
             //cout <<"Agrego trayecto de "<< nodos[act].indice<<" a "<< nodos[0].indice<<endl;
-            camino.push_back(nodos[0]);
+            camino.push_back(nodos[nodo_comienzo]);
         }else{
             //cout <<"Agrego trayecto de "<< nodos[act].indice<<" a "<< nodos[posMin].indice<<endl;
             camino.push_back(nodos[posMin]);
@@ -625,64 +622,26 @@ vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje){
     return camino;
 }
 
-vector<Nodo> aux_tsp(const vector<Nodo>& nodos, int pos, float costo) {
-    vector<vector<float> > costos(nodos.size());
-    vector<vector<Nodo> > sol;
-    sol.resize((1<<nodos.size())-1);
-    for (auto& v : sol)
-        v.push_back(nodos[0]);
-    for(auto& neighbors : costos){
-        neighbors = vector<float>((1 << nodos.size()) - 1, MAX_X*MAX_Y);//vector que tiene (2^n)-1 posiciones y cargadas inicialemnte con un valor maximo. El vector representa las posibles combinaciones
-    }
-    vector<vector<float> > distancias_entre_nodos;
-    distancias_entre_nodos.resize(nodos.size());
-
-    float maxDist = 0;
-
-    for (int i = 0; i < nodos.size(); i++) {
-        distancias_entre_nodos[i].resize(nodos.size());
-        for (int j = 0; j < nodos.size(); ++j) {
-            distancias_entre_nodos[i][j] = distancia_euclidea(nodos[i].x,nodos[i].y,nodos[j].x,nodos[j].y);
-            if(maxDist < distancias_entre_nodos[i][j]) maxDist = distancias_entre_nodos[i][j];
+vector<Nodo> tsp_con_grasp(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p) {
+    //Genero solucion con heuristica golosa
+    float costo_sol_golosa=0, costo_aux = 0, costo_min;
+    vector<Nodo> sol = tsp2(nodos,nodo_comienzo,costo_sol_golosa,1);
+    costo_min = costo_sol_golosa;
+    vector<Nodo> aux;
+    float p_shift = 0.3;
+    while (p>=0){
+        aux = tsp2(nodos,nodo_comienzo,costo_aux,p);
+        cout <<"Nueva sol es de :"<<costo_aux<<endl;
+        if(costo_aux < costo_sol_golosa){
+            sol = aux;
+            costo_min = costo_aux;
         }
+        costo_aux=0;
+        p -=p_shift;
     }
-    costo = tsp(distancias_entre_nodos,0,1,costos,sol,nodos);
-    int maxNodos = 0;
-    int posMax;
-    for (int k = 0; k < sol.size(); ++k) {
-        if(maxNodos < sol[k].size()){
-            posMax = k;
-        }
-    }
-    return sol[posMax];
+    costo_viaje = costo_min;
+    return sol;
 }
-
-
-float tsp(const vector<vector<float> >& dist_entre_nodos, int pos, int visitados, vector<vector<float>>& costos, vector<vector<Nodo> >& sol, const vector<Nodo>& nodos) {
-
-    if(visitados == ((1 << dist_entre_nodos.size()) - 1)){//si visitados ya movio tantos bits como ciudades -1, entonces solo falta volver al origen
-        sol[visitados].push_back(nodos[0]);
-        return dist_entre_nodos[pos][0]; // return to starting city
-    }
-
-    if(costos[pos][visitados] != MAX_X*MAX_Y){
-        return costos[pos][visitados];
-    }
-
-
-    for(int i = 0; i < dist_entre_nodos.size(); ++i) {
-        if(i!=pos  && !(visitados & (1<<i))) {//visitados & (1<<i)  es fijarse si el iesimo ya fue visitado
-
-            float dist = dist_entre_nodos[pos][i] + tsp(dist_entre_nodos, i, visitados | (1 << i), costos,sol,nodos); //visititados | (1<<i) es sumar a los visitados i visitas mas, es decir, que cuando este ciclo itero i veces, significa que ya calculamos i posibles soluciones de tsp diferentes, cada una yendo del nodo actual hacia otro nodo y ver finamente cual es mejor
-            if (dist < costos[pos][visitados]) {
-                costos[pos][visitados] = dist;
-                sol[visitados].push_back(nodos[i]);
-            }
-        }
-    }
-    return costos[pos][visitados];
-}
-
 
 float distancia_euclidea(float x1,float y1, float x2, float y2) {
     float dif_x = x1-x2;
