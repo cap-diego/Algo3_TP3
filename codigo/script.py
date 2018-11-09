@@ -3,12 +3,12 @@ import sys
 def convertir_para_c(nombre_test):
     nombre_file_c = str(nombre_test)+".txt"
     try:
-        fin = open(nombre_test,"r")
+        fin = open("entrada/"+nombre_test,"r")
     except IOError:
         print ("No se encuentra el archivo: ", nombre_test)
         sys.exit()
 
-    fout = open(nombre_file_c, "w")
+    fout = open("entrada/"+nombre_file_c, "w")
 
     for value in list(fin.readlines()):
 
@@ -32,7 +32,7 @@ def convertir_para_c(nombre_test):
     capacidad = capacidad.join(cap)
     fin.close()
 
-    fin = open(nombre_test,"r")
+    fin = open("entrada/"+nombre_test,"r")
     #Escribo en archivo de salida la capacida y la DIMENSION
     fout.write(str(dimen)+" " + capacidad+"\n")
 

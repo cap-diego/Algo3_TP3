@@ -18,7 +18,7 @@
 using namespace std;
 
 typedef float Peso;
-
+struct Nodo;
 float cantDespuesDeComa(const float& x, const int& numDecimals) {
     int y=x;
     float z=x-y;
@@ -28,6 +28,14 @@ float cantDespuesDeComa(const float& x, const int& numDecimals) {
 
     return static_cast<double>(y)+(1.0/m)*r;
 }
+
+float distancia_euclidea(float x1,float y1, float x2, float y2);
+void mostrar_cluster(vector<float> & demandas_cluster);
+tuple<int,  float, Nodo> min_vecino_nodo(vector<Nodo>& nodos, int indice , vector<bool>& marc);
+pair<vector<Nodo>,float> TSP(vector<Nodo> & vector_nodos, vector<Nodo> & cluster);
+void generar_output(vector<pair<int, float> >& cluster, vector<Nodo>& vector_nodos, string out);
+
+void exportar_grafo(vector<Nodo>& camino, float costo,int ruteo, string in);
 
 
 struct Nodo {
@@ -41,8 +49,9 @@ struct Nodo {
         this->indice=indice;
     }
     //Nodo (Nodo &n) : x(n.x), y(n.y), indice(n.indice) {}
-    bool operator==(Nodo &n) {
-        return(this->x == n.x && this->y == n.y);
+    bool operator==(const Nodo &n) const {
+        return (n.indice == this->indice);
+        //return(this->x == n.x && this->y == n.y);
     }
     bool operator!=(Nodo& n) {
         return(this->x != n.x || this->y != n.y);
@@ -52,6 +61,13 @@ struct Nodo {
         y = n.y;
         indice = n.indice;
     }*/
+    bool operator<(const Nodo& n)const{
+        if(distancia_euclidea(0,0,this->x,this->y) < distancia_euclidea(0,0,n.x,n.y)){
+            return true;
+        }else {
+            return false;
+        }
+    }
 };
 
 struct AristaAd{
