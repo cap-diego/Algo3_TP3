@@ -122,9 +122,9 @@ cnames = {
 'yellow':               '#FFFF00',
 'yellowgreen':          '#9ACD32'}
 
-def graficarGrafo(nombre):
+def graficarGrafo(nombre,nombre_completo):
     G = nx.Graph()
-    path = "salida/"+nombre + ".csv"
+    path = "salida/"+nombre +"/"+nombre_completo +".csv"
     f = plt.figure(nombre)
     with open(path) as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -138,9 +138,10 @@ def graficarGrafo(nombre):
             pos=nx.get_node_attributes(G,'pos')
     nx.draw_networkx(G,pos, node_size=40)
 
+
 def graficarNodos(nombre):
     G = nx.Graph()
-    path = "salida/"+ nombre + ".csv"
+    path = "salida/"+ nombre +"/"+ nombre + ".csv"
     f = plt.figure(nombre)
     lista = []
     fixed_positions = {}
@@ -188,10 +189,15 @@ def main():
         nombre = str(sys.argv[1])
         nombre_archivo = nombre
         #nombre_archivo = "M-n101-k10"
-        nombre_archivo2 = nombre_archivo+"antes"
         graficarNodos(nombre_archivo)
-        graficarGrafo(nombre_archivo+"-ruteo0")
-        graficarNodos(nombre_archivo2)
+        plt.show()
+        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo0")
+        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo1")
+        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo2")
+        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo3")
+        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo4")
+        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo5")
+
         plt.show()
 
 main()

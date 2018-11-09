@@ -88,24 +88,51 @@ public:
         }
         return nodos[desde];
     }
+
+    int nodo_mas_lejano(float demanda){ //devuelvo el nodo que esta más alejado del centro del cluster y que tiene demanda igual o mayor a la del nodo que quiero agregar
+        float maxDist = 0, dem;
+        int posMax = -1;
+
+        for (int i = 0; i < nodos.size(); ++i) {
+            if(nodos[i].demanda <= demanda && maxDist < distancia_de_nodo_al_centro(nodos[i])) {
+                maxDist = distancia_de_nodo_al_centro(nodos[i]);
+                posMax = i;
+            }
+        }
+        if(posMax==-1){
+            maxDist = 0;
+            for (int i = 0; i <nodos.size(); ++i) {
+                if(maxDist < distancia_de_nodo_al_centro(nodos[i])) {
+                    maxDist = distancia_de_nodo_al_centro(nodos[i]);
+                    posMax = i;
+                }
+            }
+        }
+        return posMax;
+    }
     void agregar_nodo(Nodo &n){
-        nodos[n.indice] = n;
-        cant_nodos++;
-        carga_actual+=n.demanda;
-        acum_pos_x_nodos+= n.x;
-        acum_pos_y_nodos+=n.y;
+        if(nodos[n.indice].indice == -1){
+            nodos[n.indice] = n;
+            cant_nodos++;
+            carga_actual+=n.demanda;
+            acum_pos_x_nodos+= n.x;
+            acum_pos_y_nodos+=n.y;
+        }
     }
     bool tiene_exceso(){
         return ((demanda_total < carga_actual)? true : false);
     }
     void eliminar_nodo(Nodo &n){
-        carga_actual-=n.demanda;
-        acum_pos_x_nodos-=n.x;
-        acum_pos_y_nodos-=n.y;
-        Nodo a;
-        a.indice=-1;
-        nodos[n.indice]=a;
-        cant_nodos--;
+        if(nodos[n.indice].indice!=-1){
+            carga_actual-=n.demanda;
+            acum_pos_x_nodos-=n.x;
+            acum_pos_y_nodos-=n.y;
+            Nodo a;
+            a.indice=-1;
+            nodos[n.indice]=a;
+            cant_nodos--;
+        }
+
     }
     bool existeNodo(Nodo& nodo) {
 
@@ -113,8 +140,8 @@ public:
             return true;
         }else return false;
     }
-    //pre: el nodo existe en el cluster
     float distancia_de_nodo_al_centro(Nodo &n) {
+        if(nodos[n.indice].indice == -1) return MAX_Y * MAX_X;
         return distancia_euclidea(x,y,n.x,n.y);
     }
 
@@ -177,7 +204,7 @@ public:
     }
     void generar_csv(string nombre){
         ofstream fout;
-        fout.open("../salida/" + nombre +".csv");
+        fout.open("../salida/" + nombre+"/"+nombre +".csv");
         fout <<deposito.indice<<","<<deposito.x<<","<<deposito.y<<","<<cantidad_de_clusters+1<<endl;
         for (int i = 0; i < cantidad_de_clusters; ++i) {
             vector<Nodo> nodos = getClusterIesimo(i).getNodos();
@@ -298,7 +325,6 @@ public:
     float getCapacidad(){
         return this->capacidad;
     }
-
     void agregar_cluster(cluster &c){
         clusters.push_back(c);
     }
@@ -321,7 +347,7 @@ int main() {
     float demanda_total = 0;
     string nombre_in = "M-n121-k7";
     ifstream fin;
-    fin.open("../entrada/"+ nombre_in+".vrp.txt");
+    fin.open("../entrada/"+ nombre_in + "/"+nombre_in +".vrp.txt");
     //fin.open("../X-n110-k13.vrp.txt");
     if (fin.is_open()) {
         fin >> cantidad_nodos >> capacidad_camion;
@@ -358,39 +384,72 @@ int main() {
     float promedio_demanda = floor(demanda_total / cantidad_nodos);
     float cantidad_clientes_puede_visitar_camion = floor(capacidad_camion / promedio_demanda);
     cout << "Cant clientes que puede visitar: " << cantidad_clientes_puede_visitar_camion <<endl;
-    int cant_clie_satisface_camion = ceil(capacidad_camion / promedio_demanda);
+    int cant_clie_satisface_camion = floor(capacidad_camion / promedio_demanda);
     float demanda_satisf_x_camion = floor(cant_clie_satisface_camion * promedio_demanda);
-    int cant_cam = floor(demanda_total / demanda_satisf_x_camion); //la correcta o necesito 1 mas
+    int cant_cam = ceil(demanda_total / demanda_satisf_x_camion); //la correcta o necesito 1 mas
     cout << "Cantidad de camiones: " << cant_cam<< endl;
 
 
-    //Determinar k crontrides random
-    //O(cant clusters * #iteraciones * #instancias * #dim=2)
-
     k_means clusterizacion(cantidad_nodos, cant_cam,deposito,capacidad_camion);
-
+    std::mt19937 rng;
+    rng.seed(std::random_device()());
+    std::uniform_int_distribution<std::mt19937::result_type> dist_x(0,pos_max_x);
+    std::uniform_int_distribution<std::mt19937::result_type> dist_y(0,pos_max_y);
     for (int i = 0; i < cant_cam; ++i) {
         clusterizacion.getClusterIesimo(i).setDeposito(deposito); //Fijo al deposito en la clusterizacion
         clusterizacion.getClusterIesimo(i).setDemanda(capacidad_camion); //Fijo la demanda total
-        clusterizacion.getClusterIesimo(i).setX(rand() % int(pos_max_x)); //fijo posiciones aleatorias
-        clusterizacion.getClusterIesimo(i).setY(rand() % int(pos_max_y));
+
+        clusterizacion.getClusterIesimo(i).setX(dist_x(rng)); //fijo posiciones aleatorias
+        clusterizacion.getClusterIesimo(i).setY(dist_y(rng));
         clusterizacion.getClusterIesimo(i).setCantidadNodos(cantidad_nodos+1);
     }
 
         int centroides_iguales = 0;
         while(centroides_iguales!= cant_cam){
             centroides_iguales = 0;
+            cout <<centroides_iguales<<endl;
             for (int i = 0; i < cant_cam; ++i) { //Repito por cada cluster
                 for (int j = 0; j < cant_cam; ++j) {
                     if (j != i) {
                         for (int k = 2; k < vector_nodos.size(); ++k) {
+                            //si el nodo k esta mas cerca del cluster i
                             if(distancia_euclidea(vector_nodos[k].x, vector_nodos[k].y, clusterizacion.getClusterIesimo(i).getX(), clusterizacion.getClusterIesimo(i).getY()) < distancia_euclidea(vector_nodos[k].x, vector_nodos[k].y, clusterizacion.getClusterIesimo(j).getX(), clusterizacion.getClusterIesimo(j).getY())){
+                                //si el nodo k esta mas cerca del cluster en el que ya esta o del cluster i
                                 if(distancia_euclidea(vector_nodos[k].x, vector_nodos[k].y, clusterizacion.getClusterIesimo(i).getX(), clusterizacion.getClusterIesimo(i).getY()) < clusterizacion.get_distancia_de_nodo_a_cluster(vector_nodos[k])){
-                                    clusterizacion.agregar_nodo_a_cluster(vector_nodos[k],i);
+
+                                    //Antes de agregarlo al cluster, me fijo si me lo llena. En ese caso,me fijo si puedo sacar algun nodo y meter al actual
+                                    //Si no lo llena entonces agrego normal
+                                    if(vector_nodos[k].demanda + clusterizacion.getClusterIesimo(i).getCargaActual() > capacidad_camion){
+                                        int nodo_lejano = clusterizacion.getClusterIesimo(i).nodo_mas_lejano(vector_nodos[k].demanda);
+                                        if( clusterizacion.getClusterIesimo(i).distancia_de_nodo_al_centro(vector_nodos[nodo_lejano]) > distancia_euclidea(vector_nodos[k].x,vector_nodos[k].y,clusterizacion.getClusterIesimo(i).getX(),clusterizacion.getClusterIesimo(i).getY()) && vector_nodos[k].demanda + clusterizacion.getClusterIesimo(i).getCargaActual() - vector_nodos[nodo_lejano].demanda <= capacidad_camion){
+                                            clusterizacion.getClusterIesimo(i).eliminar_nodo(vector_nodos[k]);
+                                            clusterizacion.agregar_nodo_a_cluster(vector_nodos[k],i);
+                                        }else {
+
+                                        }
+                                    }else{
+                                        clusterizacion.agregar_nodo_a_cluster(vector_nodos[k],i);
+                                    }
                                 }
                             }else {
+                                //si el nodo k esta mas cerca del cluster j
                                 if(distancia_euclidea(vector_nodos[k].x, vector_nodos[k].y, clusterizacion.getClusterIesimo(j).getX(), clusterizacion.getClusterIesimo(j).getY()) < clusterizacion.get_distancia_de_nodo_a_cluster(vector_nodos[k])){
-                                    clusterizacion.agregar_nodo_a_cluster(vector_nodos[k],j);
+
+                                    if(distancia_euclidea(vector_nodos[k].x, vector_nodos[k].y, clusterizacion.getClusterIesimo(j).getX(), clusterizacion.getClusterIesimo(j).getY()) < clusterizacion.get_distancia_de_nodo_a_cluster(vector_nodos[k])){
+                                        //Antes de agregarlo al cluster, me fijo si me lo llena. En ese caso,me fijo si puedo sacar algun nodo y meter al actual
+                                        //Si no lo llena entonces agrego normal
+                                        if(vector_nodos[k].demanda + clusterizacion.getClusterIesimo(j).getCargaActual() > capacidad_camion){
+                                            int nodo_lejano = clusterizacion.getClusterIesimo(j).nodo_mas_lejano(vector_nodos[k].demanda);
+                                            if( clusterizacion.getClusterIesimo(j).distancia_de_nodo_al_centro(vector_nodos[nodo_lejano]) > distancia_euclidea(vector_nodos[k].x,vector_nodos[k].y,clusterizacion.getClusterIesimo(j).getX(),clusterizacion.getClusterIesimo(j).getY()) && vector_nodos[k].demanda + clusterizacion.getClusterIesimo(j).getCargaActual() - vector_nodos[nodo_lejano].demanda <= capacidad_camion){
+                                                clusterizacion.getClusterIesimo(j).eliminar_nodo(vector_nodos[k]);
+                                                clusterizacion.agregar_nodo_a_cluster(vector_nodos[k],j);
+                                            }else {
+
+                                            }
+                                        }else{
+                                            clusterizacion.agregar_nodo_a_cluster(vector_nodos[k],j);
+                                        }
+                                    }
                                 }
 
                             }
@@ -418,7 +477,11 @@ int main() {
                 if(clusterizacion.getClusterIesimo(i).getX() == avg_x && clusterizacion.getClusterIesimo(i).getY() == avg_y) {
                     centroides_iguales++;
                 }else {
-                    if(cant_nodos <= prom - desviacion) {
+                    avg_x = clusterizacion.getClusterIesimo(i).getAvgX();
+                    avg_y = clusterizacion.getClusterIesimo(i).getAvgY();
+                    clusterizacion.getClusterIesimo(i).setX(avg_x);
+                    clusterizacion.getClusterIesimo(i).setY(avg_y);
+                    /*if(cant_nodos <= prom - desviacion) {
                         avg_x = rand() % int(pos_max_x);
                         avg_y = rand() % int(pos_max_y);
                         clusterizacion.getClusterIesimo(i).setX(avg_x);
@@ -428,7 +491,7 @@ int main() {
                         avg_y = clusterizacion.getClusterIesimo(i).getAvgY();
                         clusterizacion.getClusterIesimo(i).setX(avg_x);
                         clusterizacion.getClusterIesimo(i).setY(avg_y);
-                    }
+                    }*/
                 }
             }
         }
@@ -507,7 +570,7 @@ int main() {
 void exportar_grafo(vector<Nodo>& camino, float costo,int ruteo, string in){
     ofstream fout;
     auto s = std::to_string(ruteo);
-    fout.open("../salida/" + in + "-ruteo" + s + ".csv");
+    fout.open("../salida/" + in+"/"+in + "-ruteo" + s + ".csv");
     for (int i = 0; i < camino.size()-1; ++i) {
         fout << camino[i].indice<<","<<camino[i].x<<","<< camino[i].y<<endl;//indice,posx,posy
     }
