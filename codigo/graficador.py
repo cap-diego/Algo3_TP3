@@ -168,7 +168,7 @@ def graficarNodos(nombre):
     for i in G.nodes(data='cluster'):
         #print("Nodo: " + i[0] + " cluster: " + i[1] )
 
-        colores += [listacnames[(int(dic_colores[i[1]])) % largo] ]
+        colores += [listacnames[(int(dic_colores[i[1]])+1) % largo] ]
         if(int(i[0]) == 1 ): # si es el deposito
             colores[(len(colores)-1)] = '#000000'
         #colores += [listacnames[(int(dic_colores[(G.node[str(i)]['cluster'])] ) ) % largo]]
@@ -191,15 +191,12 @@ def main():
         #nombre_archivo = "M-n101-k10"
         graficarNodos(nombre_archivo)
         plt.show()
-        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo0")
-
+        for i in range(7):
+            graficarGrafo(nombre_archivo,nombre_archivo+"-ruteo"+str(i))
+            plt.show()
+        for i in range(7):
+            graficarGrafo(nombre_archivo,nombre_archivo+"-ruteo"+str(i))
         plt.show()
-        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo1")
-        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo2")
-        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo3")
-        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo4")
-        graficarGrafo(nombre_archivo, nombre_archivo+"-ruteo5")
 
-        plt.show()
 
 main()
