@@ -17,8 +17,6 @@ float tsp(const vector<vector<float> >& dist_entre_nodos, int pos, long long int
 vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p);
 vector<Nodo> tsp_con_grasp(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p);
 float convertir_para_tsp(k_means& clusterizacion, string nombre_in);
-
-
 int MAX_X, MAX_Y;
 Nodo deposito;
 
@@ -348,6 +346,10 @@ public:
         }else return true;
     }
     float get_distancia_de_nodo_a_cluster(Nodo &n){
+        if(n.indice==-1) return MAX_X*MAX_Y;
+        //cout <<n.indice<<endl;
+        int a = n.indice;
+        if(n.indice> cantidad_de_nodos) return MAX_Y*MAX_X;
         if(cluster_de_nodo[n.indice] == -1 ) return MAX_Y*MAX_X;
         return distancia_euclidea(n.x,n.y,clusters[cluster_de_nodo[n.indice]].getX(),clusters[cluster_de_nodo[n.indice]].getY());
     }
@@ -430,10 +432,10 @@ int main() {
     float pos_max_x = 0, pos_max_y = 0;
     srand(time(NULL));
     float demanda_total = 0;
-    string nombre_in = "M-n121-k7";
+    string nombre_in = "B-n50-k7";
     ifstream fin;
     fin.open("../entrada/"+ nombre_in + "/"+nombre_in +".vrp.txt");
-    //fin.open("../X-n110-k13.vrp.txt");
+
     if (fin.is_open()) {
         fin >> cantidad_nodos >> capacidad_camion;
         cout <<cantidad_nodos<<","<<capacidad_camion<<endl;
@@ -481,10 +483,12 @@ int main() {
     std::uniform_int_distribution<std::mt19937::result_type> dist_y(0,pos_max_y);
 
     bool repetir=true;
-    long long int cantidad_de_iteraciones_hasta_aumentar_cluster = 0, intentos_de_optimizar = 0, tope_intentos_de_optimizar=cantidad_nodos, intentos_para_cluster_particular=0, tope_intentos_para_cluster_particular = pow(cantidad_nodos,2);
+    long long int cantidad_de_iteraciones_hasta_aumentar_cluster = 0, intentos_de_optimizar = 0, tope_intentos_de_optimizar=cantidad_nodos, intentos_para_cluster_particular=0,
+            tope_intentos_para_cluster_particular = cantidad_nodos, tope_cantidad_de_iteraciones_para_aumentar_cluster=cantidad_nodos;
     float mejor_sol = INT64_MAX, mejor_sol2 = INT64_MAX;
     int mejor_sol_cluster=cantidad_nodos, mejor_sol_cluster2 = cantidad_nodos;
     k_means clust_real, mejor_cluster_actual, mejor_cluster_actual2;
+
     bool seguir_buscando_para_mas_clusters=true;
 
     while(repetir) { //este ciclo tiene como objetivo: generar varios tipos de clusterizaciones diferentes para encontrar la mejor solucion (para el parametro de repeticiones permito, claramente no la mejor absoluta). Algunos tipos de clusterizacion  no van a serir y este ciclo sirve para empezar otra de 0. Otras van a servir y este ciclo sirve para empezar otra de 0 y ver si es mejor (al realizar tsp a los clusters)
@@ -564,10 +568,11 @@ int main() {
         }
         int nodosAsig=0;
         float espacios_libres=0, espacios_por_asignar=0, demandas=0;
-
+        bool existe_cluster_vacio = false;
 
         for (int l = 0; l < clusterizacion.cant_clusters(); ++l) {
             demandas += clusterizacion.getClusterIesimo(l).getCargaActual();
+            if(clusterizacion.getClusterIesimo(l).getCantNodos()==0)existe_cluster_vacio=true;
             nodosAsig+=clusterizacion.getClusterIesimo(l).getCantNodos();
             if(clusterizacion.getClusterIesimo(l).tiene_exceso()){
                 espacios_por_asignar += clusterizacion.getClusterIesimo(l).getCargaActual() - clusterizacion.getCapacidad();
@@ -577,21 +582,24 @@ int main() {
         }
 
         repetir = false;
-
-
+        //clusterizacion.mostrar_clusters();
         if(demandas < demanda_total) repetir = true;
-
-        if(cantidad_de_iteraciones_hasta_aumentar_cluster > cantidad_nodos){
+        if(cantidad_de_iteraciones_hasta_aumentar_cluster > tope_cantidad_de_iteraciones_para_aumentar_cluster && !existe_cluster_vacio){
             //si despues de realizar cierta cantidad de iteraciones sigo sin poder clusterizar, entonces aumento un cluster
             cant_cam++;
-            cout <<" VOY A NECESITAR OTRO CLUSTER-------------------------------------------------------------, ahora tengo: "<<cant_cam<<endl;
+            cout <<" VOY A NECESITAR OTRO CLUSTER----------------------(ALCANCE LA CANTIDAD DE ITERACIONES PARA AUMENTAR CLUSTER)---------------------------------------, ahora tengo: "<<cant_cam<<endl;
             repetir = true;
             cantidad_de_iteraciones_hasta_aumentar_cluster=0;
             continue;
+        }else if(cantidad_de_iteraciones_hasta_aumentar_cluster > tope_cantidad_de_iteraciones_para_aumentar_cluster && existe_cluster_vacio){
+            repetir = true;;
+            cantidad_de_iteraciones_hasta_aumentar_cluster=0;
+            continue;
         }
+
         if(espacios_libres < espacios_por_asignar){
             cant_cam++;
-            cout <<" VOY A NECESITAR OTRO CLUSTER-------------------------------------------------------------, ahora tengo: "<<cant_cam<<endl;
+            cout <<" VOY A NECESITAR OTRO CLUSTER----------(LOS ESPACIOS LIBRES NO ALCANZAN)---------------------------------------------------, ahora tengo: "<<cant_cam<<endl;
             repetir = true;
             continue;
         }
@@ -599,7 +607,7 @@ int main() {
             repetir = true;
             if((promedio_demanda * (cantidad_nodos-1-nodosAsig)) > espacios_libres){
                 cant_cam++;
-                cout <<" VOY A NECESITAR OTRO CLUSTER-------------------------------------------------------------, ahora tengo: "<<cant_cam<<endl;
+                cout <<" VOY A NECESITAR OTRO CLUSTER---------------------------(LOS NODOS ASIGNADOS A ESTE CLUSTER NO SON TODOS)----------------------------------, ahora tengo: "<<cant_cam<<endl;
             }
             continue;
         }
@@ -631,7 +639,7 @@ int main() {
             }
             intentos_de_optimizar++;
         }
-        if(!seguir_buscando_para_mas_clusters && mejor_sol_cluster<cant_cam) { //si ya encontre una solucion para una determinada cantidad de cammiones y ahora estoy buscando nuevas soluciones pero con mas camiones
+        if(seguir_buscando_para_mas_clusters == false && mejor_sol_cluster<cant_cam) { //si ya encontre una solucion para una determinada cantidad de cammiones y ahora estoy buscando nuevas soluciones pero con mas camiones
             repetir = false;
         }
     }
