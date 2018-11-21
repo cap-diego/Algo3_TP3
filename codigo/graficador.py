@@ -136,7 +136,7 @@ def graficarGrafo(nombre,nombre_completo):
             else:
                 costo_tour = row[0]
             pos=nx.get_node_attributes(G,'pos')
-    nx.draw_networkx(G,pos, node_size=40)
+    nx.draw_networkx(G,pos, node_size=15)
 
 
 def graficarNodos(nombre):
@@ -175,7 +175,7 @@ def graficarNodos(nombre):
 
     #colores[0] = '#000000'
     pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
-    nx.draw_networkx(G,pos,node_color=colores,node_size=65, with_labels=True)
+    nx.draw_networkx(G,pos,node_color=colores,node_size=45, with_labels=True)
 
     print("Cantidad de clusters" , len(dic_colores)-1)
 
