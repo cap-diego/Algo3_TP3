@@ -1,0 +1,14 @@
+Para usar el clusterizador:
+-Primero: es necesario tener las instancias en el formato correspondiente. Una vez descargadas de la pagina vrp.atd-lab.inf.puc-rio.br/index.php/en/ con extension .vrp lo guardamos en una carpeta, dentro de la carpeta entrada, que tenga el mismo nombre que la instancia.
+Posteriormente, desde la consola ejecutamos un script de python. Para la ejecución:
+py script.py "nombre_instancia"/nombre_instancia.vrp
+Si el archivo se generó bien se dará un mensaje por pantalla avisandolo, y si no se notificará de la falla. El archivo que se genera tiene extension .vrp.txt.
+
+
+-Segundo:Dentro de la carpeta 'salida'  hay que crear una carpeta con el nombre de la instancia (ahí generara los archivos nuestro programa) y también en la carpeta 'salida' crear una carpeta que tenga como nombre la inicial del nombre de la instancia (acá se guardarán datos más generales de la ejecución de instancias del mismo tipo, como por ejemplo los tiempos de ejecución, cantidad de clientes, etc).
+
+-Tercero: Hay que ejecutar el main.cpp. Si es desde linea de comando se compilaría: g++ main.cpp -o ejecutable y al ejecutar ./ejecutable "nombre_instancia_sin_extension".
+Si se quiere ejecutar desde CLion, diretamente se ejecuta y por línea de comando se introduce el nombre de la instancia sin la extension.
+Después se pedirá que se ingresen los valores de los flags de control (con una pequeña nota descriptiva), que son 3 y están explicados en el informe.
+
+-Cuarto: ejecutar desde consola el script de python 'graficador', esto nos devolverá un gráfico con la clusterización y el ruteo. Es importante modificar en graficador.py, una variable llamada cantidad_de_rutas y asignarle el valor que le corresponde. Una vez hecho esto ejecutar de consola: py graficador.py nombre_instancia_sin_extension

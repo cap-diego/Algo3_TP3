@@ -33,7 +33,7 @@ def convertir_para_c(nombre_test):
     fin.close()
 
     fin = open("entrada/"+nombre_test,"r")
-    #Escribo en archivo de salida la capacida y la DIMENSION
+    #Escribo en archivo de salida la cap+acida y la DIMENSION
     fout.write(str(dimen)+" " + capacidad+"\n")
 
     enc_node_sec = 0

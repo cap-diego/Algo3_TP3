@@ -122,7 +122,7 @@ cnames = {
 'yellow':               '#FFFF00',
 'yellowgreen':          '#9ACD32'}
 
-def graficarGrafo(nombre,nombre_completo):
+def graficarGrafo(nombre,nombre_completo, col):
     G = nx.Graph()
     path = "salida/"+nombre +"/"+nombre_completo +".csv"
     f = plt.figure(nombre)
@@ -132,11 +132,13 @@ def graficarGrafo(nombre,nombre_completo):
             if(len(row) == 3):
                 G.add_node(int(row[0]),pos=(float(row[1]),float(row[2])))
             elif(len(row) == 2):
+                #G.add_edge(int(row[0]),int(row[1]))
                 G.add_edge(int(row[0]),int(row[1]))
             else:
                 costo_tour = row[0]
             pos=nx.get_node_attributes(G,'pos')
-    nx.draw_networkx(G,pos, node_size=15)
+    nx.draw_networkx(G,pos, edge_color=col, node_size=10)#edge_color=colors)
+    #nx.draw_networkx(G,pos, node_size=15)
 
 
 def graficarNodos(nombre):
@@ -175,7 +177,7 @@ def graficarNodos(nombre):
 
     #colores[0] = '#000000'
     pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
-    nx.draw_networkx(G,pos,node_color=colores,node_size=45, with_labels=True)
+    nx.draw_networkx(G,pos,node_color=colores,node_size=60, with_labels=True)
 
     print("Cantidad de clusters" , len(dic_colores)-1)
 
@@ -183,6 +185,9 @@ def graficarNodos(nombre):
 def main():
 
     print ("Corriendo ", sys.argv[0])
+    listacnames=[]
+    for i in cnames.keys() :
+        listacnames += [cnames[i]]
     if(len(sys.argv) < 2 or len(sys.argv) >2):
         print("Error, faltan o sobran parametros")
     else:
@@ -191,11 +196,11 @@ def main():
         #nombre_archivo = "M-n101-k10"
         graficarNodos(nombre_archivo)
         plt.show()
-        for i in range(7):
-            graficarGrafo(nombre_archivo,nombre_archivo+"-ruteo"+str(i))
-            plt.show()
-        for i in range(7):
-            graficarGrafo(nombre_archivo,nombre_archivo+"-ruteo"+str(i))
+            #graficarGrafo(nombre_archivo,nombre_archivo+"-ruteo"+str(i), cnames[i])
+            #plt.show()
+        cantidad_de_rutas = 7
+        for i in range(cantidad_de_rutas):
+            graficarGrafo(nombre_archivo,nombre_archivo+"-ruteo"+str(i),listacnames[5+i])
         plt.show()
 
 

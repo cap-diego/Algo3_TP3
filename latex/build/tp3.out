@@ -1,0 +1,17 @@
+\BOOKMARK [1][-]{section.1}{Introducci\363n al problema}{}% 1
+\BOOKMARK [1][-]{section.2}{Descripci\363n formal del problema}{}% 2
+\BOOKMARK [1][-]{section.3}{T\351cnicas y soluciones}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{Branch and Bound}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.2}{Heur\355sticas}{section.3}% 5
+\BOOKMARK [3][-]{subsubsection.3.2.1}{Constructivas}{subsection.3.2}% 6
+\BOOKMARK [3][-]{subsubsection.3.2.2}{Algoritmo de dos fases}{subsection.3.2}% 7
+\BOOKMARK [2][-]{subsection.3.3}{Metaheur\355sticas}{section.3}% 8
+\BOOKMARK [1][-]{section.4}{Problemas de la vida real}{}% 9
+\BOOKMARK [1][-]{section.5}{Algoritmos presentados}{}% 10
+\BOOKMARK [2][-]{subsubsection.5.0.1}{Algoritmo de cluster-first, route second: mediante alternativa de sweep algorithm}{section.5}% 11
+\BOOKMARK [3][-]{subsubsection.5.0.2}{Complejidad}{subsubsection.5.0.1}% 12
+\BOOKMARK [3][-]{subsubsection.5.0.3}{Algoritmo de resoluci\363n de problema de TSP}{subsubsection.5.0.1}% 13
+\BOOKMARK [3][-]{subsubsection.5.0.4}{Complejidad}{subsubsection.5.0.1}% 14
+\BOOKMARK [2][-]{subsection.5.1}{Experimentaci\363n: cluster-first, route-second: con alternativa a sweep algorithm}{section.5}% 15
+\BOOKMARK [3][-]{subsubsection.5.1.1}{Parte 1: primeras observaciones de la performance}{subsection.5.1}% 16
+\BOOKMARK [3][-]{subsubsection.5.1.2}{Parte 2: configuraci\363n seg\372n el caso para la mejor performance}{subsection.5.1}% 17

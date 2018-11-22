@@ -13,18 +13,6 @@
 using namespace std;
 
 
-#define medir_tiempo(K, CODIGO) \
-    [&] () -> double {\
-        double tiempo_promedio = 0.0;\
-        for (int i = 0; i < K; ++i)\
-        {\
-            auto tiempo_inicio = chrono::steady_clock::now();\
-            CODIGO \
-            auto tiempo_fin = chrono::steady_clock::now();\
-            tiempo_promedio += chrono::duration<double, milli>(tiempo_fin - tiempo_inicio).count();\
-        }\
-        return tiempo_promedio / (double)K;\
-    }();
 
 class k_means;
 float aux_tsp(const vector<Nodo>&, int pos);
@@ -447,13 +435,31 @@ int main(int argc, char *argv[]){
     }
     int cantidad_nodos;
     int capacidad_camion;
+    long long int cant_it, cant_opt;
     double tiempo = 0.0;
     vector<Nodo> vector_nodos; //Tamaño = cantidad_nodos
     float pos_max_x = 0, pos_max_y = 0;
     srand(time(NULL));
     float demanda_total = 0;
-    nombre_in = "B-n78-k10";
+    nombre_in = "";//"E-n30-k3";
     ifstream fin;
+    bool buscar_nueva_sol;
+
+
+    if(argc > 1){ //si me dan el nombre del aechivo por argumento
+        if(argc > 1) nombre_in = argv[1];
+    }else if(argc == 1) {
+        cout <<"Ingrese nombre de archivo a leer (que este en carpeta 'entrada'): "<<endl;
+        cin >> nombre_in;
+    }
+
+    cout <<"Ingrese el tope de la cantidad de iteraciones antes de aumentar un cluster: "<<endl;
+    cin >> cant_it;
+    cout<<"Ingrese el tope de la cantidad de veces que se quiere buscar una solución para obtener la más óptima: "<<endl;
+    cin >> cant_opt;
+    cout <<"Ingrese 1 si quiere seguir buscando soluciones con mas cluster, teniendo una ya con menos, 0 si no: "<<endl;
+    cin >> buscar_nueva_sol;
+
     fin.open("../entrada/"+ nombre_in + "/"+nombre_in +".vrp.txt");
 
         if (fin.is_open()) {
@@ -477,9 +483,10 @@ int main(int argc, char *argv[]){
                 int indice;
                 fin >> indice >> vector_nodos[j].demanda;
                 demanda_total += vector_nodos[j].demanda;
+                cout <<demanda_total<<endl;
             }
         } else {
-            cout << "Error" << endl;
+            cout << "Error al abrir el archivo" << endl;
             exit(0);
         }
         MAX_X = pos_max_x;
@@ -505,13 +512,13 @@ int main(int argc, char *argv[]){
         std::uniform_int_distribution<std::mt19937::result_type> dist_y(0, pos_max_y);
 
         bool repetir = true;
-        long long int cantidad_de_iteraciones_hasta_aumentar_cluster = 0, intentos_de_optimizar = 0, tope_intentos_de_optimizar = cantidad_nodos, intentos_para_cluster_particular = 0,
-                tope_intentos_para_cluster_particular = cantidad_nodos, tope_cantidad_de_iteraciones_para_aumentar_cluster = 50;
+        long long int cantidad_de_iteraciones_hasta_aumentar_cluster = 0, intentos_de_optimizar = 0, tope_intentos_de_optimizar = cant_opt, intentos_para_cluster_particular = 0,//300
+                tope_intentos_para_cluster_particular = 500, tope_cantidad_de_iteraciones_para_aumentar_cluster = cant_it;//500;
         float mejor_sol = INT64_MAX, mejor_sol2 = INT64_MAX;
         int mejor_sol_cluster = cantidad_nodos, mejor_sol_cluster2 = cantidad_nodos;
         k_means clust_real, mejor_cluster_actual, mejor_cluster_actual2;
 
-        bool seguir_buscando_para_mas_clusters = true;
+        bool seguir_buscando_para_mas_clusters =  buscar_nueva_sol;
         auto tiempo_inicio = chrono::steady_clock::now();
         while (repetir) { //este ciclo tiene como objetivo: generar varios tipos de clusterizaciones diferentes para encontrar la mejor solucion (para el parametro de repeticiones permito, claramente no la mejor absoluta). Algunos tipos de clusterizacion  no van a serir y este ciclo sirve para empezar otra de 0. Otras van a servir y este ciclo sirve para empezar otra de 0 y ver si es mejor (al realizar tsp a los clusters)
             cantidad_de_iteraciones_hasta_aumentar_cluster++;
@@ -619,6 +626,7 @@ int main(int argc, char *argv[]){
             }
 
             repetir = false;
+
             //clusterizacion.mostrar_clusters();
             if (demandas < demanda_total) repetir = true;
 
@@ -683,7 +691,9 @@ int main(int argc, char *argv[]){
             if (seguir_buscando_para_mas_clusters == false && mejor_sol_cluster <
                                                               cant_cam) { //si ya encontre una solucion para una determinada cantidad de cammiones y ahora estoy buscando nuevas soluciones pero con mas camiones
                 repetir = false;
+                clust_real = mejor_cluster_actual;
             }
+            if(cant_cam >= cantidad_nodos) repetir = false;
         }
         auto tiempo_fin = chrono::steady_clock::now();
 
