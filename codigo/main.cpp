@@ -21,6 +21,10 @@ float tsp(const vector<vector<float> >& dist_entre_nodos, int pos, long long int
 vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p);
 vector<Nodo> tsp_con_grasp(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p);
 float convertir_para_tsp(k_means& clusterizacion, string nombre_in);
+vector<Nodo> opt_swap(vector<Nodo>& nodos, vector<Nodo>& solucion_actual, int tope1, int tope2, float& costo_solucion);
+vector<Nodo> opt_swap2(vector<Nodo>& solucion_actualp,int tope1, int tope2, float& costo_solucion);
+
+
 int MAX_X, MAX_Y;
 Nodo deposito;
 
@@ -433,9 +437,10 @@ int main(int argc, char *argv[]){
     if(argc == 2) {//significa que por argumento me pasan el nombrel del archivo
         nombre_in=argv[1];
     }
+    float solucion_optima;
     int cantidad_nodos;
     int capacidad_camion;
-    long long int cant_it, cant_opt;
+    long long int cant_it, cant_opt, cant_mismo_cluster;
     double tiempo = 0.0;
     vector<Nodo> vector_nodos; //Tamaño = cantidad_nodos
     float pos_max_x = 0, pos_max_y = 0;
@@ -449,17 +454,23 @@ int main(int argc, char *argv[]){
     if(argc > 1){ //si me dan el nombre del aechivo por argumento
         if(argc > 1) nombre_in = argv[1];
     }else if(argc == 1) {
-        cout <<"Ingrese nombre de archivo a leer (que este en carpeta 'entrada'): "<<endl;
-        cin >> nombre_in;
+        //cout <<"Ingrese nombre de archivo a leer (que este en carpeta 'entrada'): "<<endl;
+        //cin >> nombre_in;
     }
-
+    nombre_in = "P-n76-k5";
+/*
     cout <<"Ingrese el tope de la cantidad de iteraciones antes de aumentar un cluster: "<<endl;
     cin >> cant_it;
     cout<<"Ingrese el tope de la cantidad de veces que se quiere buscar una solución para obtener la más óptima: "<<endl;
     cin >> cant_opt;
+    cout <<"Ingrese el tope de la cantidad de iteraciones para intentar formar un mismo cluster: "<<endl;
+    cin >> cant_mismo_cluster;
     cout <<"Ingrese 1 si quiere seguir buscando soluciones con mas cluster, teniendo una ya con menos, 0 si no: "<<endl;
-    cin >> buscar_nueva_sol;
-
+    cin >> buscar_nueva_sol;*/
+    cant_it=100;
+    cant_opt=10;
+    cant_mismo_cluster=500;
+    buscar_nueva_sol=0;
     fin.open("../entrada/"+ nombre_in + "/"+nombre_in +".vrp.txt");
 
         if (fin.is_open()) {
@@ -476,15 +487,15 @@ int main(int argc, char *argv[]){
                 fin >> (n.indice) >> n.x >> n.y;
                 if (pos_max_x < n.x) pos_max_x = n.x;
                 if (pos_max_y < n.y) pos_max_y = n.y;
-                //cout <<"Guardo el: "<<n.indice<< " X: "<<n.x<< " Y: "<<n.y<<endl;
                 vector_nodos[n.indice] = n;
             }
             for (int j = 1; j < vector_nodos.size(); ++j) {
                 int indice;
                 fin >> indice >> vector_nodos[j].demanda;
                 demanda_total += vector_nodos[j].demanda;
-                cout <<demanda_total<<endl;
+                //cout <<demanda_total<<endl;
             }
+            fin>>solucion_optima;
         } else {
             cout << "Error al abrir el archivo" << endl;
             exit(0);
@@ -513,7 +524,7 @@ int main(int argc, char *argv[]){
 
         bool repetir = true;
         long long int cantidad_de_iteraciones_hasta_aumentar_cluster = 0, intentos_de_optimizar = 0, tope_intentos_de_optimizar = cant_opt, intentos_para_cluster_particular = 0,//300
-                tope_intentos_para_cluster_particular = 500, tope_cantidad_de_iteraciones_para_aumentar_cluster = cant_it;//500;
+                tope_intentos_para_cluster_particular = cant_mismo_cluster, tope_cantidad_de_iteraciones_para_aumentar_cluster = cant_it;//500;
         float mejor_sol = INT64_MAX, mejor_sol2 = INT64_MAX;
         int mejor_sol_cluster = cantidad_nodos, mejor_sol_cluster2 = cantidad_nodos;
         k_means clust_real, mejor_cluster_actual, mejor_cluster_actual2;
@@ -708,11 +719,29 @@ int main(int argc, char *argv[]){
             cout << "MEJOR SOLUCION ENCONTRADA CON " << mejor_sol_cluster2 << " clusters fue: " << mejor_sol2 << endl;
         std::ofstream outfile;
         string salida = string("../salida") + "/" + nombre_in[0] + "/" + "soluciones.txt";
+        cout <<"guardo en: "<<nombre_in[0]<<endl;
         outfile.open(salida, std::ios_base::app);
         if (outfile.is_open()) {
             outfile << cantidad_nodos << "," << mejor_sol_cluster << "," << v << "," << tiempo << endl;
         }
+        outfile.close();
+        string cant_camiones;
+        bool enc = false;
+        for(auto& c:nombre_in){
+            if(c=='k'){
+                enc=true;
+                continue;
+            }
+            if(enc) cant_camiones.push_back(c);
+        }
 
+        cout <<"CANTIDAD DE CAMIONES DE LA INSTANCIA ES: "<<cant_camiones<<endl;
+        outfile.open("soluciones.csv", ios::app);
+        if(outfile.is_open()){
+            outfile << (nombre_in)<<","<<cantidad_nodos <<","<<capacidad_camion<<","<<cant_camiones<<","<<solucion_optima<<","<<"CRSA"<<","<<mejor_sol<<","<<mejor_sol_cluster<<","<<tiempo<<endl;
+            cout <<"Exportando solucion..."<<endl;
+        }else cout <<"Error exportando a soluciones"<<endl;
+    outfile.close();
     return 0;
 }
 
@@ -724,22 +753,22 @@ float convertir_para_tsp(k_means& clusterizacion, string nombre_in) {
     for (int i = 0; i < clusterizacion.cant_clusters(); ++i) {
         //cout <<"cant nodos del cluster "<< i<<": "<<clusterizacion.getClusterIesimo(i).getCantNodos()<<endl;
         vector<Nodo> nodos = clusterizacion.getClusterIesimo(i).getNodos();
-        vector<Nodo> nodos_con_dep(nodos.size()+1);
+        vector<Nodo> nodos_con_dep(nodos.size()+1); //le sumo para agregar el deposito
         nodos_con_dep[0] = deposito;
-        for (int j = 0; j < nodos.size(); ++j) {
-            nodos_con_dep[j + 1] = nodos[j];
+        for (int j = 1; j < nodos_con_dep.size(); ++j) {
+            nodos_con_dep[j] = nodos[j-1];
         }
-        cout <<"Ruteo " << i<<endl;
+        //cout <<"Ruteo " << i<<endl;
+        costo_viaje = 0;
         vector<Nodo> camino = tsp_con_grasp(nodos_con_dep,0,costo_viaje,1);
-        for(auto c:camino){
-            cout <<c.indice<<" , ";
+        /*for(auto c:camino){
+            cout <<"c:"<<c.indice<<" , ";
         }
-        cout <<endl;
+        cout <<endl;*/
         ctsp2+=costo_viaje;
-
         exportar_grafo(camino,costo_viaje,i,nombre_in);
     }
-    cout <<"Costo total: "<<ctsp2<<endl;
+    //cout <<"Costo total: "<<ctsp2<<endl;
     return ctsp2;
 }
 
@@ -757,7 +786,7 @@ void exportar_grafo(vector<Nodo>& camino, float costo,int ruteo, string in){
     fout.close();
 }
 
-vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p){
+vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p){//O(TAM_CLUSTER_i ^ 2)
     vector<Nodo> camino;
      //contiene los nodos del cluster
     vector<vector<float> > distancias_entre_nodos;
@@ -800,7 +829,7 @@ vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, fl
             posMin = posible_nodo;
             minDist = distancias_entre_nodos[act][posible_nodo];
         }
-        if(posMin == -1) { //Significa que no hay mas que visitar
+        if(posible_nodo == -1) { //Significa que no hay mas que visitar
             hay_nodos= false;
             costo_viaje += distancias_entre_nodos[act][nodo_comienzo];
             //cout <<"Agrego trayecto de "<< nodos[act].indice<<" a "<< nodos[0].indice<<endl;
@@ -815,26 +844,85 @@ vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, fl
     return camino;
 }
 
-vector<Nodo> tsp_con_grasp(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p) {
+vector<Nodo> tsp_con_grasp(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p) { //O(TAMCLUSTER_i ^ 2 *swap) = O(TAMCLUSTER_i ^ 3)
     //Genero solucion con heuristica golosa
-    float costo_sol_golosa=0, costo_aux = 0, costo_min;
-    vector<Nodo> sol = tsp2(nodos,nodo_comienzo,costo_sol_golosa,1);
-    costo_min = costo_sol_golosa;
-    vector<Nodo> aux;
-    float p_shift = 0.1;
-    while (p>=0.5){
-        aux = tsp2(nodos,nodo_comienzo,costo_aux,p);
-        if(costo_aux < costo_sol_golosa){
-            sol = aux;
-            costo_min = costo_aux;
+    float costo_sol_golosa=0;
+    vector<Nodo> sol = tsp2(nodos,nodo_comienzo,costo_sol_golosa,1); //conseguimos la primera solucion de forma golosa
+    vector<Nodo> sol_sin_dep, mejor_sol = sol;
+    float mejor_costo = costo_sol_golosa;
+    float shift = 0.1;
+    while(p>=1) {//O(1)
+        //Aplico busqueda lineal a nuevas soluciones
+        for (int i = 1; i < sol.size() - 2; ++i) {//O(TAMCLUSTER_i * TAMCLUSTER_i * opt_swap(TAM_CLUSTER_i)) = O(TAMCLUSTER_i * TAMCLUSTER_i * TAMCLUSTER_i) < O(n^3)
+            float costo_nueva_sol = 0;
+            for (int j = i + 2; j < sol.size()-1; ++j) {
+                costo_nueva_sol=0;
+                vector<Nodo> aux = opt_swap2(sol,i,j,costo_nueva_sol);
+                if(costo_nueva_sol<mejor_costo){
+                    mejor_sol=aux;
+                    mejor_costo=costo_nueva_sol;
+                }
+            }
         }
-        costo_aux=0;
-        p -=p_shift;
+        p-=shift;
+        costo_sol_golosa = 0;
+        sol = tsp2(nodos,nodo_comienzo,costo_sol_golosa,p);
+        if(costo_sol_golosa<mejor_costo){
+            mejor_costo=costo_sol_golosa;
+            sol = mejor_sol;
+        }
     }
-    costo_viaje = costo_min;
-    return sol;
+    costo_viaje = mejor_costo;
+    return mejor_sol;
 }
 
+vector<Nodo> opt_swap(vector<Nodo>& nodos, vector<Nodo>& solucion_actual, int tope1, int tope2, float& costo_solucion){//O(TAMCLUSTER_i)
+    /*
+     * 2optSwap(route, i, k) {
+       1. take route[0] to route[i-1] and add them in order to new_route
+       2. take route[i] to route[k] and add them in reverse order to new_route
+       3. take route[k+1] to end and add them in order to new_route
+       return new_route;
+
+       */
+    costo_solucion = 0;
+    vector<Nodo> nueva_sol;
+    float costo_nueva_sol = 0;
+    for (int i = 0; i < solucion_actual.size(); i++) {
+        if(i<tope1) {//agrego en orden de solucion actual
+            nueva_sol.push_back(solucion_actual[i]);
+        }
+        else if(i>= tope1 && i <= tope2){//agrego en orden inverso
+            nueva_sol.push_back(solucion_actual[i+abs(tope2-i)]);
+
+        }else if(i>tope2){ //agrego en orden de sol actual
+            nueva_sol.push_back(solucion_actual[i]);
+        }
+    }
+    for (int i = 0; i < nueva_sol.size(); ++i) {
+        costo_nueva_sol += distancia_euclidea(nueva_sol[i].x, nueva_sol[i].y, nueva_sol[i + 1].x, nueva_sol[i + 1].y);
+    }
+    costo_solucion = costo_nueva_sol;
+    return solucion_actual;
+
+}
+
+
+vector<Nodo> opt_swap2(vector<Nodo>& solucion_actual, int tope1, int tope2, float& costo_solucion){//O(TAMCLUSTER_i)
+
+    costo_solucion = 0;
+    for (int i = tope2; i <= tope1; i--) {//le saco las puntas que son los
+        Nodo aux = solucion_actual[tope1+abs(tope2-i)];
+        solucion_actual[tope1+abs(tope2-i)]=solucion_actual[i];
+        solucion_actual[i] = aux;
+    }
+    for (int i = 0; i < solucion_actual.size(); ++i) {
+        costo_solucion += distancia_euclidea(solucion_actual[i].x, solucion_actual[i].y, solucion_actual[i + 1].x, solucion_actual[i + 1].y);
+    }
+
+    return solucion_actual;
+
+}
 float distancia_euclidea(float x1,float y1, float x2, float y2) {
     float dif_x = x1-x2;
     float dif_y = y1-y2;
