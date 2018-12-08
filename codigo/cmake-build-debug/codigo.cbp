@@ -82,7 +82,7 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="C:/Users/diego/Documents/Facultad/AED 3/Labor/TP3/codigo/main.cpp">
+		<Unit filename="C:/Users/diego/Documents/Facultad/AED 3/Labor/TP3/codigo/prog.cpp">
 			<Option target="codigo"/>
 		</Unit>
 		<Unit filename="C:/Users/diego/Documents/Facultad/AED 3/Labor/TP3/codigo/CMakeLists.txt">

@@ -122,32 +122,32 @@ codigo/fast:
 	$(MAKE) -f CMakeFiles\codigo.dir\build.make CMakeFiles/codigo.dir/build
 .PHONY : codigo/fast
 
-main.obj: main.cpp.obj
+prog.obj: prog.cpp.obj
 
-.PHONY : main.obj
+.PHONY : prog.obj
 
 # target to build an object file
-main.cpp.obj:
-	$(MAKE) -f CMakeFiles\codigo.dir\build.make CMakeFiles/codigo.dir/main.cpp.obj
-.PHONY : main.cpp.obj
+prog.cpp.obj:
+	$(MAKE) -f CMakeFiles\codigo.dir\build.make CMakeFiles/codigo.dir/prog.cpp.obj
+.PHONY : prog.cpp.obj
 
-main.i: main.cpp.i
+prog.i: prog.cpp.i
 
-.PHONY : main.i
+.PHONY : prog.i
 
 # target to preprocess a source file
-main.cpp.i:
-	$(MAKE) -f CMakeFiles\codigo.dir\build.make CMakeFiles/codigo.dir/main.cpp.i
-.PHONY : main.cpp.i
+prog.cpp.i:
+	$(MAKE) -f CMakeFiles\codigo.dir\build.make CMakeFiles/codigo.dir/prog.cpp.i
+.PHONY : prog.cpp.i
 
-main.s: main.cpp.s
+prog.s: prog.cpp.s
 
-.PHONY : main.s
+.PHONY : prog.s
 
 # target to generate assembly for a file
-main.cpp.s:
-	$(MAKE) -f CMakeFiles\codigo.dir\build.make CMakeFiles/codigo.dir/main.cpp.s
-.PHONY : main.cpp.s
+prog.cpp.s:
+	$(MAKE) -f CMakeFiles\codigo.dir\build.make CMakeFiles/codigo.dir/prog.cpp.s
+.PHONY : prog.cpp.s
 
 # Help Target
 help:
@@ -158,9 +158,9 @@ help:
 	@echo ... codigo
 	@echo ... edit_cache
 	@echo ... rebuild_cache
-	@echo ... main.obj
-	@echo ... main.i
-	@echo ... main.s
+	@echo ... prog.obj
+	@echo ... prog.i
+	@echo ... prog.s
 .PHONY : help
 
 

@@ -198,7 +198,7 @@ def main():
         plt.show()
             #graficarGrafo(nombre_archivo,nombre_archivo+"-ruteo"+str(i), cnames[i])
             #plt.show()
-        cantidad_de_rutas = 7
+        cantidad_de_rutas = 9
         for i in range(cantidad_de_rutas):
             graficarGrafo(nombre_archivo,nombre_archivo+"-ruteo"+str(i),listacnames[5+i])
         plt.show()

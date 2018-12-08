@@ -22,9 +22,9 @@ vector<Nodo> tsp2(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, fl
 vector<Nodo> tsp_con_grasp(vector<Nodo>& nodos, int nodo_comienzo, float &costo_viaje, float p);
 float convertir_para_tsp(k_means& clusterizacion, string nombre_in);
 vector<Nodo> opt_swap(vector<Nodo>& nodos, vector<Nodo>& solucion_actual, int tope1, int tope2, float& costo_solucion);
-vector<Nodo> opt_swap2(vector<Nodo>& solucion_actualp,int tope1, int tope2, float& costo_solucion);
+vector<Nodo> opt_swap2(vector<Nodo>& solucion_actual,int tope1, int tope2, float& costo_solucion);
 
-
+int rutas_usadas;
 int MAX_X, MAX_Y;
 Nodo deposito;
 
@@ -263,6 +263,9 @@ public:
         }
         fout.close();
     }
+    void eliminar_cluster(int i){
+
+    }
 
     int cluster_mas_cercano(int c1) {//Devuelvo el cluster más cercano y con menos demanda posible
         float minDist = MAX_X*MAX_Y;
@@ -437,7 +440,7 @@ int main(int argc, char *argv[]){
     if(argc == 2) {//significa que por argumento me pasan el nombrel del archivo
         nombre_in=argv[1];
     }
-    float solucion_optima;
+    int solucion_optima;
     int cantidad_nodos;
     int capacidad_camion;
     long long int cant_it, cant_opt, cant_mismo_cluster;
@@ -457,7 +460,7 @@ int main(int argc, char *argv[]){
         //cout <<"Ingrese nombre de archivo a leer (que este en carpeta 'entrada'): "<<endl;
         //cin >> nombre_in;
     }
-    nombre_in = "P-n76-k5";
+    nombre_in = "M-n200-k17";
 /*
     cout <<"Ingrese el tope de la cantidad de iteraciones antes de aumentar un cluster: "<<endl;
     cin >> cant_it;
@@ -467,9 +470,9 @@ int main(int argc, char *argv[]){
     cin >> cant_mismo_cluster;
     cout <<"Ingrese 1 si quiere seguir buscando soluciones con mas cluster, teniendo una ya con menos, 0 si no: "<<endl;
     cin >> buscar_nueva_sol;*/
-    cant_it=100;
-    cant_opt=10;
-    cant_mismo_cluster=500;
+    cant_it=18;
+    cant_opt=1;
+    cant_mismo_cluster=5;
     buscar_nueva_sol=0;
     fin.open("../entrada/"+ nombre_in + "/"+nombre_in +".vrp.txt");
 
@@ -496,6 +499,7 @@ int main(int argc, char *argv[]){
                 //cout <<demanda_total<<endl;
             }
             fin>>solucion_optima;
+            cout <<"sol opt: "<<solucion_optima<<endl;
         } else {
             cout << "Error al abrir el archivo" << endl;
             exit(0);
@@ -638,39 +642,40 @@ int main(int argc, char *argv[]){
 
             repetir = false;
 
-            //clusterizacion.mostrar_clusters();
-            if (demandas < demanda_total) repetir = true;
-
-            if (cantidad_de_iteraciones_hasta_aumentar_cluster > tope_cantidad_de_iteraciones_para_aumentar_cluster &&
-                !existe_cluster_vacio) {
+            if (cantidad_de_iteraciones_hasta_aumentar_cluster > tope_cantidad_de_iteraciones_para_aumentar_cluster) {
                 //si despues de realizar cierta cantidad de iteraciones sigo sin poder clusterizar, entonces aumento un cluster
                 cant_cam++;
-                //cout <<" VOY A NECESITAR OTRO CLUSTER----------------------(ALCANCE LA CANTIDAD DE ITERACIONES PARA AUMENTAR CLUSTER)---------------------------------------, ahora tengo: "<<cant_cam<<endl;
                 repetir = true;
                 cantidad_de_iteraciones_hasta_aumentar_cluster = 0;
                 continue;
-            } else if (cantidad_de_iteraciones_hasta_aumentar_cluster >
-                       tope_cantidad_de_iteraciones_para_aumentar_cluster && existe_cluster_vacio) {
-                repetir = true;;
-                cantidad_de_iteraciones_hasta_aumentar_cluster = 0;
+
+            //clusterizacion.mostrar_clusters();
+            if (demandas < demanda_total){
+                repetir = true;
+                continue;
+            }
+            if (espacios_libres < espacios_por_asignar) {
+                cant_cam++;
+                repetir = true;
                 continue;
             }
 
-            if (espacios_libres < espacios_por_asignar) {
-                cant_cam++;
-                //cout <<" VOY A NECESITAR OTRO CLUSTER----------(LOS ESPACIOS LIBRES NO ALCANZAN)---------------------------------------------------, ahora tengo: "<<cant_cam<<endl;
+            }/* else if (cantidad_de_iteraciones_hasta_aumentar_cluster >
+                       tope_cantidad_de_iteraciones_para_aumentar_cluster && existe_cluster_vacio) {
                 repetir = true;
+                cantidad_de_iteraciones_hasta_aumentar_cluster = 0;
                 continue;
-            }
+            }*/
+
+
             if (nodosAsig < cantidad_nodos - 1) { //Le resto 1 porque el deposito no cuenta
                 repetir = true;
                 if ((promedio_demanda * (cantidad_nodos - 1 - nodosAsig)) > espacios_libres) {
                     cant_cam++;
-                    //cout <<" VOY A NECESITAR OTRO CLUSTER---------------------------(LOS NODOS ASIGNADOS A ESTE CLUSTER NO SON TODOS)----------------------------------, ahora tengo: "<<cant_cam<<endl;
                 }
                 continue;
             }
-            if (repetir && intentos_de_optimizar > tope_intentos_de_optimizar) {
+            if (repetir && intentos_de_optimizar >= tope_intentos_de_optimizar) {
                 clust_real = mejor_cluster_actual;
                 repetir = false;
             }
@@ -713,16 +718,15 @@ int main(int argc, char *argv[]){
         clust_real.mostrar_clusters();
         float v = convertir_para_tsp(mejor_cluster_actual, nombre_in);
         clust_real.generar_csv(nombre_in);
-        cout << "MEJOR SOLUCION ENCONTRADA CON " << mejor_sol_cluster << " clusters fue: " << v << endl;
+        cout << "MEJOR SOLUCION ENCONTRADA CON " << rutas_usadas << " clusters fue: " << v << endl;
         cout << "TIEMPO DE EJECUCION: " << tiempo << " ms" << endl;
-        if (seguir_buscando_para_mas_clusters && mejor_sol_cluster2 <= cant_cam)
-            cout << "MEJOR SOLUCION ENCONTRADA CON " << mejor_sol_cluster2 << " clusters fue: " << mejor_sol2 << endl;
+
         std::ofstream outfile;
         string salida = string("../salida") + "/" + nombre_in[0] + "/" + "soluciones.txt";
         cout <<"guardo en: "<<nombre_in[0]<<endl;
         outfile.open(salida, std::ios_base::app);
         if (outfile.is_open()) {
-            outfile << cantidad_nodos << "," << mejor_sol_cluster << "," << v << "," << tiempo << endl;
+            outfile << cantidad_nodos << "," << rutas_usadas << "," << v << "," << tiempo << endl;
         }
         outfile.close();
         string cant_camiones;
@@ -738,7 +742,8 @@ int main(int argc, char *argv[]){
         cout <<"CANTIDAD DE CAMIONES DE LA INSTANCIA ES: "<<cant_camiones<<endl;
         outfile.open("soluciones.csv", ios::app);
         if(outfile.is_open()){
-            outfile << (nombre_in)<<","<<cantidad_nodos <<","<<capacidad_camion<<","<<cant_camiones<<","<<solucion_optima<<","<<"CRSA"<<","<<mejor_sol<<","<<mejor_sol_cluster<<","<<tiempo<<endl;
+            cout <<"guardando sol optima: "<<solucion_optima<<endl;
+            outfile << (nombre_in)<<","<<cantidad_nodos <<","<<capacidad_camion<<","<<cant_camiones<<","<<solucion_optima<<","<<"CRSA"<<","<<int(mejor_sol)<<","<<rutas_usadas<<","<<tiempo<<endl;
             cout <<"Exportando solucion..."<<endl;
         }else cout <<"Error exportando a soluciones"<<endl;
     outfile.close();
@@ -748,8 +753,7 @@ int main(int argc, char *argv[]){
 float convertir_para_tsp(k_means& clusterizacion, string nombre_in) {
     float costo_viaje = 0;
     float ctsp2=0;
-    vector<vector<Nodo> > mat(clusterizacion.cant_clusters());
-    //cout <<"cant clusters: "<<clusterizacion.cant_clusters()<<endl;
+    int cant_rutas=0;
     for (int i = 0; i < clusterizacion.cant_clusters(); ++i) {
         //cout <<"cant nodos del cluster "<< i<<": "<<clusterizacion.getClusterIesimo(i).getCantNodos()<<endl;
         vector<Nodo> nodos = clusterizacion.getClusterIesimo(i).getNodos();
@@ -760,14 +764,20 @@ float convertir_para_tsp(k_means& clusterizacion, string nombre_in) {
         }
         //cout <<"Ruteo " << i<<endl;
         costo_viaje = 0;
-        vector<Nodo> camino = tsp_con_grasp(nodos_con_dep,0,costo_viaje,1);
+        vector<Nodo> camino;
+        if(nodos_con_dep.size()!=1) {
+            cant_rutas++;
+            camino = tsp_con_grasp(nodos_con_dep,0,costo_viaje,1);
+        }
         /*for(auto c:camino){
             cout <<"c:"<<c.indice<<" , ";
         }
         cout <<endl;*/
+        //cout <<"costo ruta: "<<i<<" : "<<costo_viaje <<endl;
         ctsp2+=costo_viaje;
-        exportar_grafo(camino,costo_viaje,i,nombre_in);
+        if(nodos_con_dep.size()!=1) exportar_grafo(camino,costo_viaje,i,nombre_in);
     }
+    rutas_usadas=cant_rutas;
     //cout <<"Costo total: "<<ctsp2<<endl;
     return ctsp2;
 }
@@ -848,21 +858,24 @@ vector<Nodo> tsp_con_grasp(vector<Nodo>& nodos, int nodo_comienzo, float &costo_
     //Genero solucion con heuristica golosa
     float costo_sol_golosa=0;
     vector<Nodo> sol = tsp2(nodos,nodo_comienzo,costo_sol_golosa,1); //conseguimos la primera solucion de forma golosa
-    vector<Nodo> sol_sin_dep, mejor_sol = sol;
+    vector<Nodo> mejor_so, mejor_sol = sol;
     float mejor_costo = costo_sol_golosa;
     float shift = 0.1;
     while(p>=1) {//O(1)
         //Aplico busqueda lineal a nuevas soluciones
         for (int i = 1; i < sol.size() - 2; ++i) {//O(TAMCLUSTER_i * TAMCLUSTER_i * opt_swap(TAM_CLUSTER_i)) = O(TAMCLUSTER_i * TAMCLUSTER_i * TAMCLUSTER_i) < O(n^3)
-            float costo_nueva_sol = 0;
-            for (int j = i + 2; j < sol.size()-1; ++j) {
-                costo_nueva_sol=0;
-                vector<Nodo> aux = opt_swap2(sol,i,j,costo_nueva_sol);
-                if(costo_nueva_sol<mejor_costo){
-                    mejor_sol=aux;
-                    mejor_costo=costo_nueva_sol;
+
+                float costo_nueva_sol = 0;
+                for (int j = i + 1; j < sol.size()-1; ++j) {
+                    costo_nueva_sol=0;
+                    vector<Nodo> aux = opt_swap2(sol,i,j,costo_nueva_sol);
+                    if(costo_nueva_sol<mejor_costo){
+                        mejor_sol=aux;
+                        mejor_costo=costo_nueva_sol;
+                    }
                 }
-            }
+
+
         }
         p-=shift;
         costo_sol_golosa = 0;
