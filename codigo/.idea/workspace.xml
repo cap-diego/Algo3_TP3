@@ -26,15 +26,24 @@
       <file leaf-file-name="prog.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/prog.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="316">
-              <caret line="735" column="25" lean-forward="true" selection-start-line="735" selection-start-column="25" selection-end-line="735" selection-end-column="25" />
+            <state relative-caret-position="285">
+              <caret line="459" column="20" lean-forward="true" selection-start-line="459" selection-start-column="20" selection-end-line="459" selection-end-column="20" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
-                <element signature="e#965#5578#1" expanded="false" />
-                <element signature="e#5581#14348#1" expanded="false" />
-                <element signature="e#37731#38925#0" expanded="false" />
-                <element signature="e#39540#39738#0" expanded="false" />
+                <element signature="e#646#5257#1" expanded="false" />
+                <element signature="e#5260#14027#1" expanded="false" />
+                <element signature="e#38078#38276#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="new_allocator.h" pinned="false" current-in-tab="false">
+        <entry file="file://C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++/ext/new_allocator.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="183">
+              <caret line="109" column="0" lean-forward="false" selection-start-line="109" selection-start-column="0" selection-end-line="109" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -49,12 +58,20 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="stl_vector.h" pinned="false" current-in-tab="false">
+        <entry file="file://C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++/bits/stl_vector.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="243">
+              <caret line="780" column="0" lean-forward="false" selection-start-line="780" selection-start-column="0" selection-end-line="780" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>enc</find>
-      <find>clear</find>
       <find>preten</find>
       <find>109</find>
       <find>costo tot</find>
@@ -83,9 +100,14 @@
       <find>cantidad_de_iteraciones_hasta_aumentar_cluster</find>
       <find>COSTO</find>
       <find>error expor</find>
+      <find>int</find>
+      <find>long long int</find>
     </findStrings>
     <replaceStrings>
       <replace>clusterizacion</replace>
+      <replace>long long int</replace>
+      <replace>int</replace>
+      <replace>int</replace>
     </replaceStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -108,7 +130,7 @@
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="120" />
-    <option name="y" value="160" />
+    <option name="y" value="163" />
     <option name="width" value="960" />
     <option name="height" value="604" />
   </component>
@@ -158,7 +180,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.codigo">
+  <component name="RunManager" selected="Application.Build All">
     <configuration name="Build All" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="codigo" RUN_TARGET_NAME="codigo" EXPLICIT_BUILD_TARGET_NAME="all">
       <envs />
     </configuration>
@@ -187,12 +209,12 @@
       <workItem from="1541163335505" duration="42074000" />
       <workItem from="1541538434354" duration="93042000" />
       <workItem from="1542569546511" duration="103865000" />
-      <workItem from="1544020699674" duration="55206000" />
+      <workItem from="1544020699674" duration="76619000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="300203000" />
+    <option name="totallyTimeSpent" value="321616000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -200,15 +222,15 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1875" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.15042374" sideWeight="0.1359375" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2881356" sideWeight="0.30520833" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32944915" sideWeight="0.49791667" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24152543" sideWeight="0.7109375" order="8" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.39194915" sideWeight="0.5317708" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32944915" sideWeight="0.48958334" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24152543" sideWeight="0.2890625" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39194915" sideWeight="0.46822917" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -246,7 +268,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="10" />
+      <option name="time" value="11" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -299,10 +321,9 @@
           <caret line="515" column="128" lean-forward="true" selection-start-line="515" selection-start-column="128" selection-end-line="515" selection-end-column="128" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
-            <element signature="e#965#5578#1" expanded="false" />
-            <element signature="e#5581#14348#1" expanded="false" />
-            <element signature="e#37731#38925#0" expanded="false" />
-            <element signature="e#39540#39738#0" expanded="false" />
+            <element signature="e#646#5257#1" expanded="false" />
+            <element signature="e#5260#14027#1" expanded="false" />
+            <element signature="e#38078#38276#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -347,10 +368,9 @@
           <caret line="362" column="39" lean-forward="true" selection-start-line="362" selection-start-column="39" selection-end-line="362" selection-end-column="39" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
-            <element signature="e#965#5578#1" expanded="false" />
-            <element signature="e#5581#14348#1" expanded="false" />
-            <element signature="e#37731#38925#0" expanded="false" />
-            <element signature="e#39540#39738#0" expanded="false" />
+            <element signature="e#646#5257#1" expanded="false" />
+            <element signature="e#5260#14027#1" expanded="false" />
+            <element signature="e#38078#38276#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -361,10 +381,9 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
-            <element signature="e#965#5578#1" expanded="false" />
-            <element signature="e#5581#14348#1" expanded="false" />
-            <element signature="e#37731#38925#0" expanded="false" />
-            <element signature="e#39540#39738#0" expanded="false" />
+            <element signature="e#646#5257#1" expanded="false" />
+            <element signature="e#5260#14027#1" expanded="false" />
+            <element signature="e#38078#38276#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -383,10 +402,9 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
-            <element signature="e#965#5578#1" expanded="false" />
-            <element signature="e#5581#14348#1" expanded="false" />
-            <element signature="e#37731#38925#0" expanded="false" />
-            <element signature="e#39540#39738#0" expanded="false" />
+            <element signature="e#646#5257#1" expanded="false" />
+            <element signature="e#5260#14027#1" expanded="false" />
+            <element signature="e#38078#38276#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -408,14 +426,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++/ext/new_allocator.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="239">
-          <caret line="109" column="0" lean-forward="false" selection-start-line="109" selection-start-column="0" selection-end-line="109" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++/bits/stl_construct.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="217">
@@ -428,14 +438,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="885">
           <caret line="454" column="0" lean-forward="false" selection-start-line="454" selection-start-column="0" selection-end-line="454" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++/bits/stl_vector.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="243">
-          <caret line="780" column="0" lean-forward="false" selection-start-line="780" selection-start-column="0" selection-end-line="780" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -456,16 +458,31 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++/bits/stl_vector.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="243">
+          <caret line="780" column="0" lean-forward="false" selection-start-line="780" selection-start-column="0" selection-end-line="780" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++/ext/new_allocator.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="183">
+          <caret line="109" column="0" lean-forward="false" selection-start-line="109" selection-start-column="0" selection-end-line="109" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/prog.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="316">
-          <caret line="735" column="25" lean-forward="true" selection-start-line="735" selection-start-column="25" selection-end-line="735" selection-end-column="25" />
+        <state relative-caret-position="285">
+          <caret line="459" column="20" lean-forward="true" selection-start-line="459" selection-start-column="20" selection-end-line="459" selection-end-column="20" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
-            <element signature="e#965#5578#1" expanded="false" />
-            <element signature="e#5581#14348#1" expanded="false" />
-            <element signature="e#37731#38925#0" expanded="false" />
-            <element signature="e#39540#39738#0" expanded="false" />
+            <element signature="e#646#5257#1" expanded="false" />
+            <element signature="e#5260#14027#1" expanded="false" />
+            <element signature="e#38078#38276#0" expanded="false" />
           </folding>
         </state>
       </provider>

@@ -1,0 +1,229 @@
+
+
+\subsection{Experimentación: cluster-first, route-second: con alternativa a sweep algorithm}
+\subsubsection{Parte 1: primeras observaciones de la performance}
+Esta primera aproximación nos servirá para conocer el funcionamiento del algoritmo frente a instancias de la vida real. Alguna de las preguntas que nos surgen son evidentes: Cuán cerca estará de las soluciones óptimas de la página? Encontraremos casos patólogicos relacionados a la clusterización? Y casos patólogicos que no podamos decidir si es producto de la clusterización? Qué rol en los tiempos de ejecución y calidad de la solución cumplirá el tamaño de la entrada? Nuestros parámeros definidos para refinar una solución realmente le generan un valor agregado?\\
+Dado que explicamos la complejidad fijando ciertos parametros, vamos a experimentar con rangos acotados, para que se mantenga la correlación entre la complejidad teórica y la práctica. \\
+El flag de seguir buscando soluciones con más cluster vamos a tenerla en true. La cantidad de intentos para poder generar una clusterización va a tener como tope una cantidad de iteraciones lineal a n. La cantidad de intentos antes de aumentar la cantidad de cluster para clusterizar lo vamos a fijar en una constante e inicialmente en 500. La cantidad de soluciones que queremos buscar será una constante, inicialmente en 200.\\
+Habiendo planteado algunas interrogantes comenzamos tomando la instancia A-n32-k5. 
+\centering
+\includegraphics[scale=.5]{graficos/A-n32-k5/cluster.png}
+\begin{figure}[!h]
+\caption{Así queda la clusterización}
+\end{figure}
+
+Sin información de cómo será la solución, parece bastante razonable la forma en que se distribuyeron los recorridos. 
+
+\includegraphics[scale=.5]{graficos/A-n32-k5/caminos.png}
+
+\begin{figure}[!h]
+\caption{Ruteos: a la izquierda nuestra solución}
+\end{figure}
+La solución óptima es de 784 con 5 camiones, mientras que nosotros pudimos conseguir 898 con 5 camiones, computada en 3977ms $\approx$ 3 segundos. La desviación respecto de la óptima es del 14 \% Mirando los caminos vemos que es posible que el camino violeta esté generando mayores distancias, mientras que esa zona en la solución óptima se resolvió distribuyendo unos nodos a caminos ya existentes y se dejo una ruta para sólo dos clientes. Antes de afirmar algo probemos otro test.
+\bigskip
+
+
+\begin{figure}[!h]
+\caption{Clusterización de instancia A-n55-k9}
+\end{figure}
+
+\includegraphics[scale=.5]{graficos/A-n55-k9/cluster.png}
+\bigskip
+
+\begin{figure}[!h]
+\caption{Ruteos: a la izquierda nuestra solución}
+\end{figure}
+\includegraphics[scale=.5]{graficos/A-n55-k9/caminos.png}
+
+Nuestra solución consiguió rutear con 9 camiones y un costo de 1185 en 33612 ms $\approx$ 33 segundos, mientras que la óptima era de:1073 con la misma cantidad de camiones. Es una desviación de 10 \% de la óptima. 
+\\
+\begin{figure}[!h]
+\caption{Clusterización test B-n52-k7}
+\end{figure}
+\includegraphics[scale=.5]{graficos/B-n52-k7/cluster.png}
+
+En este caso parecería un caso que sea bueno para resolver clusterizando, sin embargo, las demandas de los clientes de la parte superior generan tres cluster en lo que podría pensarse como uno sólo. Esto es producto de las demandas de los clientes y la capacidad del camión. Veamos los caminos:
+
+\includegraphics[scale=.5]{graficos/B-n52-k7/caminos.png}
+\begin{figure}[!h]
+\caption{Ruteos: arriba nuestra solución}
+\end{figure}
+
+Nuestra solución utilizó 7 camiones y un costo de 778, mientras que la solución óptima fue de 747 con la misma cantidad de camiones. Una diferencia del 4 \%, una muy buena calidad de solución. Respecto a los dos anteriores casos tenemos mejor calidad en la solución. En parte es esperable que suceda para casos en donde sea visible la utilidad de clusterizar: los primeros dos test no tenían a simple vista un patrón que permita agrupar los clientes. Además, mencionamos que en este caso los tres clusteres superiores seguro están perjudicando la solución. La solución óptima también clusteriza así esa parte pero algunos caminos son mejores:  los clientes 44,3,36 deberían ser un cluster en sí mismo, a lo sumo junto con otros clientes que estén por debajo, no es conveniente agregar a este cluster cliente de la parte superior porque nos agrega caminos de alto costo.\\
+\includegraphics[scale=.5]{graficos/B-n52-k7/prob_camino.png}
+\\Como vemos en la imagen anterior, y dado que el cliente 49 tiene de demanda 13, la mejor manera de agrupar esos conjuntos es mandando el 49 al otro cluster, que puede albergarlo.
+
+
+\bigskip \bigskip
+\bigskip
+
+
+Probando otro test, el B-n45-k6, nos encontramos con el primer caso en donde no podemos utilizar la cantidad de vehículos de la solución óptima. 
+
+\includegraphics[scale=.5]{graficos/B-n45-k6/cluster.png}
+\begin{figure}[!h]
+\caption{Clusterización}
+\end{figure}
+\\
+\includegraphics[scale=.5]{graficos/B-n45-k6/caminos.png}
+\\
+Nuestra solución necesitó de 7 camiones, mientras que la solución óptima utiliza 6. Respecto de los costos obtuvimos 752 contra 678, un 10\% de diferencia. El tiempo de ejecución fue de 25 segundos. Sin embargo, vemos la posibilidad de testear la funcionalidad de uno de nuestros control flags. Dado que buscamos exprimir al máximo las posibilidades de conseguir la solución con 6 clusters aumentamos a 5000 la cantidad de intentos de ese flag. Los resultados son los siguientes:\\
+\includegraphics[scale=.4]{graficos/B-n45-k6/caminos2.png}
+\begin{figure}[!h]
+\caption{Ruteos: a la izquierda nuestra solución}
+\end{figure}
+\bigskip
+Por un lado conseguimos obtener 6 rutas. El costo fue de 768 vs los 678 de la óptima, un 13 \% de diferencia. Otro punto a resaltar fueron los 126514 ms $\approx$ poco más de 2 minutos de ejecución contra los 25 segundos anteriores. Y acá es donde podemos aprovechar otra funcionalidad de los flags: nosotros teníamos 'activo' la posibilidad de buscar soluciones con más cluster: habiendo encontrado una con menos y siempre y cuando los acumuladores de los otros flags no lleguen a su tope. Durante la experimentación tenemos este flag activo por si encontramos algo interesante que remarcar.  Al desactivarlo esperamos ver una reducción de los tiempos. Sin sorpresas respecto de la solución, ahora sí mejoramos el tiempo de ejecución: 65083ms $\approx$ 1 minuto. \\
+También ya que estamos podríamos aumentar el acumulador de optimización de solución en busca de un costo más cercano al óptimo. Aumentamos este acumulador a 5000. Sin embargo en este caso seguimos encontrando el mismo costo. Vamos a ver más adelante donde volver a probarlo.
+\bigskip		
+
+\bigskip
+\includegraphics[scale=.5]{graficos/P-n16-k8/cluster.png}
+\begin{figure}[!h]
+\caption{Clusterización test P-n16-k8}
+\end{figure}\\
+En este caso, las demandas van de 0 a 31 y la capacidad es de 35. Es altamente probable que pase lo que mencionamos anteriormente. \\
+La solución óptima utiliza 8 camiones y tiene un costo de 450, mientras que la nuestra utiliza los mismos camiones y tiene un costo de: 462. Tiempos de ejecución:124658ms $\approx$ 2 minutos . Una diferencia de 2.5\%, evidentemente es una muy buena aproximación a la solución óptima. Los caminos a simple vista parecen muy coherentes y similares. Algunas decisiones de camino incluso son idénticas, el único camino realmente diferente es el que visita los clientes 12 y 11. En la solución óptima los agrupa separadamente y nos atrevemos a decir que es esta la única decisión del algoritmo que nos separa de la solución óptima.
+\\
+La observación importante que podemos hacer con este caso es que hay cierta relación entre los tiempos de ejecución y el número de clusters que se usan. En el test anterior teníamos casi el triple de clientes y con la misma consideración de flags el tiempo fue de 25 segundos. Sólo cuando aumentamos los topes el tiempo fue de 2 minutos, pero en esos casos en particular estamos casi obligando a iterar muchas más veces. En este caso el problema sin exigirle grandes refinamientos probablemente necesita iterar muchas veces, probablemente debido a dificultades para armar la clusterización (al haber una distribución tan poco 'agrupable', cualquier cambio en la posición del centro de un cluster genera movimientos de clientes a lo largo de toda la clusterización. Si además las demandas están tan cercas de la capacidad, cualquier movimiento de clientes a otro cluster requiere eliminar un cliente de ese cluster para no exceder la demanda. Estas son algunas de las cosas que deben estar pasando en este caso relacionado al tiempo de ejecución. Pero la calidad de la solución al fin y al cabo es muy buena.\bigskip
+
+
+\includegraphics[scale=.6]{graficos/P-n16-k8/caminos.png}
+\begin{figure}[!h]
+\caption{Ruteos: a la izquierda nuestra solución}
+\end{figure}
+
+Para compararlos, tomamos el test P-n45-k5. Las demandas van de 0 a 41 y la capacidad del camion es 150. Buscamos ver que en este caso los tiempos de ejecución sean menores sobre todo en proporción al caso anterior.
+
+\includegraphics[scale=.5]{graficos/P-n45-k5/cluster.png}
+\begin{figure}[!h]
+\caption{Clusterización test P-n45-k5}
+\end{figure}
+
+\includegraphics[scale=.5]{graficos/P-n45-k5/caminos.png}
+\begin{figure}[!h]
+\caption{Ruteos: a la izquierda nuestra solución}
+\end{figure}
+
+Solución optima: 5 camiones y costo : 510. Nuestra solución: 5 camiones y costo:582, diferencia: 14\%. Viendo los caminos no hay mucho más para analizar, anteriormente mencionamos la necesidad de cierto refinamiento adicional para poder conseguir los mejores caminos, haciendo algo parecido a una permutación de clientes entre clusters y ver si mejora. Nosotros eso no lo tenemos y por eso consideramos que existen estas diferencias, sin embargo, consideramos que son soluciones de bastante buena calidad.\\Lo que nos interesaba discutir de este caso es los tiempos de ejecución. El tiempo de ejecución fue de 9699 ms $\approx$ 9 segundos. 
+\\ \bigskip
+Pasemos al caso de test P-n60-k15.
+\\
+\includegraphics[scale=.5]{graficos/P-n60-k15/cluster.png}
+\begin{figure}[!h]
+\caption{Clusterización test P-n60-k15}
+\end{figure}
+\\
+La primera observación que podemos hacer es que la clusterización tiene muchisimos más colores (evidente por tener más cluster). Otra no tan evidente a simple vista es que no pudimos encontrar un ruteo con 15 vehículos: necesitamos usar 16 con costo 1045. El tiempo de ejecución fue 793727 ms $\approx$ 13 minutos. La solución óptima acusó 15 camiones y costo de:968.\\ 
+Hay varias cosas para resaltar: es un ejemplo práctico de lo que analizamos anteriormente, necesitó muchas iteraciones para ir aumentando de cluster y dado que no encontró solución con menos clusters, significa que consumió todos los contadores de control, particularmente el que controla las iteraciones de refinamiento de una clusterización, que va en el orden de n. Si para una clusterización no encuentra ninguna solución, va a necesitar muchas iteraciones para poder avanzar de cluster, hasta llegar a uno que sí permita encontrar solución.\\
+\includegraphics[scale=.5]{graficos/P-n60-k15/caminos.png}
+\begin{figure}[!h]
+\caption{Ruteos: a la izquierda nuestra solución}
+\end{figure}
+
+Este tipo de casos podemos empezar a pensar que son considerablemente malos para nuestro método. Primero porque la distribución de los puntos genera que cualquier movimiento en la posición del centro de un cluster puede mover muchisimos nodos de cluster. Por otro lado, hay muchos clusters debido a que cada cliente tiene demandas muy cercanas a la total del camión y además internamente cada vez que podamos mover un nodo a otro cluster es altamente probable que necesitemos sacar algún nodo de ese clsuter (para que no exceda a la demanda del camión) y entonces cada iteración no necesariamente se 'libera' de un nodo, al contrario, muchas iteraciones siguen teniendo los mismos nodos por asignar.\\
+
+
+En línea con lo que intentamos anteriormente, vamos a desactivar el flag de seguir buscando solución con más clusters, vamos a aumentar los intentos de optimización de solución y intentos para aumentar cluster a 5000. Veamos si conseguimos algo mejor. Los resultados son: 
+
+\bigskip
+\includegraphics[scale=.5]{graficos/P-n60-k15/cluster-caminos2.png}
+Como anteriormente paso, logramos rutear en 15 vehículos e incluso reduciendo el costo:1023, ahora la diferencia es de 5\% pero con la misma cantidad de camiones. Obviamente que todo tiene un costo y en este caso fue pasar de 13 minutos a 18 minutos.
+
+
+\bigskip
+Probemos con otro tipo de test respecto de los que veníamos probando: B-n63-k10.
+\bigskip
+\includegraphics[scale=.5]{graficos/B-n63-k10/cluster.png}
+\begin{figure}[!h]
+\caption{Clusterización test B-n63-k10}
+\end{figure}
+\\
+Primera observación: en este caso sí pudimos encontrar solución con 10 camiones y de costo 1601. La solución óptima es de 10 camiones y costo: 1496, un 7\% desviado de la óptima. El tiempo de ejecución fue de 59550ms $\approx$ 1 minuto. La observación más importante que podemos hacer es relacionada con el caso anterior: tenemos el mismo tamaño de clientes y sin embargo ambos test tardan tiempos muy diferentes. Esto nos empieza a indicar que si bien el tamaño de la entrada nos afecta, enntran en juego tambien cómo o cuántos clusters se necesitarán para rutear. Vimos que instancias donde necesitamos aumentar los flags para mejorar la solución el tiempo aumentaba mucho más cuándo los clientes estaban dsitribuidos de forma uniforme.\\
+\includegraphics[scale=.5]{graficos/B-n63-k10/caminos.png}
+\begin{figure}[!h]
+\caption{Ruteos: arriba nuestra solución}
+\end{figure}
+
+
+
+\bigskip
+
+Antes de pasar a la experimentación final nos interesaría comprobar una cosa. Nosotros pudimos mejorar soluciones (sonbre todo reducir los vehículos) aumentando algunos flags de control. Esto nos generaba naturalmente mayores tiempos de ejecución por la naturaleza de su funcionamiento: al aumentarlos exigimos que determina parte del programa siga intentando más veces a ver si encuentra algo mejor. Pudimos tener éxito haicendo esto tanto en casos con 10 clientes como con 150, en casos en donde la distribución uniforme de los clientes no acusaba, a simple vista, una clusterización y también en casos en donde la clusterización era más evidente. Lo que todavía no terminamos de ver es la siguiente relación: si bien es verdad que los tiempos de ejecución aumentan al aumentar los flags, creemos que lo hacen de forma menos agresiva cuando la distribución de los puntos no es uniforme, sino que hay concentraciones en determinados puntos.\\
+
+\bigskip
+
+ 
+\subsubsection{Parte 2: configuración según el caso para la mejor performance}
+Para esta parte de la experimentación vamos a buscar casos de test bien representantivos de lo que buscamos mostrar, explicarllo y comentar qué esperamos ver y posteriormente correr el algoritmo.\\
+Como breve resumen sabemos que instancias de distribución uniforme de puntos en el plano no son buenas para los tiempos de ejecución o para encontrar una solución cercana a la óptima o para tratar de mejorar aún más la solución. Cuando se trata de distribución con ciertos grupos de clientes claramente separados (por lo menos para nuestra percepción) los tiempos de ejecución son mucho más asumibles y en caso de buscar óptimizar aún más la solución esto se suele mantener. Otro de las cosas que nos generan problemas es cierta disparidad en las demandas de los clientes y particularmente suele afectar más a la clusterización. Cuando anteriormente tuvimos una distribución homogénea de puntos a lo largo de todo el plano y no conseguimos una solución óptima (en función de la cantidad de camiones) volvimos a correr el algoritmo mejorando algunos flags y finalmente encontramos una mejor solución. Esto es algo que cuando los puntos se distribuyen en zonas suficientemente alejadas y encuentra este tipo de problemas, no suele poder evitarlos y termina usando más camiones. Creemos que esto pasa porque cuando hay muchos puntos juntos por todo el plano, sacar a uno de un lado y enviarlo a otro no afecta mucho a la solución final dado que las diferencias quizá son mínimas y porque la cercanía de los clientes suele permitir que existe siempre alguno más o menos cercano al que se puede unir. Cuando no hay una distribución  así, sacar algo de un cluster y enviarlo a otro puede generar o rutas muy costosas (por la distancia entre los clusters) y/o necesitar más clusters, debido a que el cluster al que se quiere mandar un cliente ya esta lleno. Si bien nuestro algoritmo trata de evitar esto realizando muchos tipos de clusterización con el mismo numero de cluster y buscando la mejor, realizar esto de forma precisa y exacta es exponencial y nuestra heuristica para resolver el problema apunta a una solución aproximada de la mejor calidad posible en un tiempo razonable. Hechos los comentarios pertinentes, comenzamos.
+
+\bigskip
+\begin{figure}[!h]
+\caption{Clusterización test M-n200-k17}
+\end{figure}
+\includegraphics[scale=.5]{graficos/M-n200-k17/cluster.png}
+
+Elegimos comenzar por un caso de los que venimos mencionando: clientes distribuidos homogéneamente aunque demandas considerablemente bajas en comparación a la capacidad del camión. Dado que en comparación a n la cantidad de clusters no parece ser tan grande, creemos que seteando los topes en 500 y el flag de buscar solución para más clusters en false (para obtener mejores tiempos) podemos conseguir rutear en 17 rutas. Si como en casos anteriores habría más 'colores' es posible que aumentaríamos los topes. Los tiempos de ejecución seguramente serán alto incluso así y es posible que no encuentre la solución óptima en función de la cantidad de rutas o del costo total . Veamos los resultados:
+\bigskip
+\includegraphics[scale=.4]{graficos/M-n200-k17/caminos.png}
+\begin{figure}[!h]
+\caption{Clusterización test M-n200-k17}
+\end{figure}
+
+\bigskip
+Los caminos los ponemos a modo ilustrativo, no sirve mucho para compararlos con la solución óptima porque se convertiría en una discusión aparte acerca de las decisiones tomadas por los algoritmos. Lo interesante es que el algoritmo logro rutear en 17 rutas, tal como la solución óptima. La diferencia en calidad en este caso radica en los costos: 1536 vs 1275 respectivamente (un 20 \% más). Si seguimos el hilo de los anteriores test, encontramos que para los estándares que veníamos manejando es una relativamente mala solución. Además hay que comentar los tiempos de ejecución: alrededor de 30 minutos.
+
+
+\bigskip
+
+
+Seguimos con un caso que pensamos sacará ciertas ventajas en la clusterización. El test es el B-n44-k7. 
+La capacidad total es 100 y las demandas están entre 0 y 69.
+\\
+\includegraphics[scale=.5]{graficos/B-n44-k7/prev.png}
+\\En la imagen identificamos un punto problemático: tiene demanda 69. Como vimos, esto puede generar un problema pero dado que la distribución de los puntos nos conceda ciertas ventajas. Además vamos a establecer en 200 los topes y en false el flag de seguir buscando solución con más clusters. Los mayores problemas suponemos que estarán cuando tengamos que juntar clientes de forma 'inteligente'  con el cliente que tiene una demanda de 69. En caso de no poder hacerlo en las iteraciones que le damos, nos agregará más cluster a la solución, sin embargo, la distancia de los cluster y la cantidad de puntos problemáticos (sólo uno) nos da confianza en poder resolverlo sin grandes topes.
+
+\bigskip
+
+Seguimos con un caso que no termina de ser muy evidente en que grupo estaría.
+\includegraphics[scale=.5]{graficos/F-n135-k7/prev.png}
+\\Por un lado no hay una distribución muy homogénea a lo largo del plano, tampoco hay grupos de clientes evidentes, la capacidad es de 2210 y las demandas van entre 0 y 1126. Sin embargo analizando los clientes, no encontramos el que tiene demanda 1126, de hecho la mayoría ronda en 0 a 100 de demanda, de modo que suponemos que el que tiene esa demanda esta dentro de la zona cercana al depósito de mayor densidad. El hecho de que haya pocos clusters en relación a los clientes nos da cierto indicio de que puede ser un caso de los 'buenos'. El hecho de que no haya muchos puntos problemáticos (no marcamos ninguno porque no lo encontramos) también sería un indicador de menos problemas. La configuración que elegimos va a tener en cuenta todo esto y si bien confiamos en poder resolverlo cerca de la solución óptima, dado que tiene cierto parecido a una distribución uniforme y que hay 135 clientes, podría ser un limitante a la hora de computar una solución. Seteamos los topes en 400 y el flag de seguir buscando solución en false.
+
+
+\bigskip
+\includegraphics[scale=.45]{graficos/B-n44-k7/cluster.png}
+\begin{figure}[!h]
+\caption{Clusterización test B-n44-k7}
+\end{figure}
+\bigskip
+\includegraphics[scale=.45]{graficos/B-n44-k7/caminos.png}
+\begin{figure}[!h]
+\caption{A la izquierda nuestra solución}
+\end{figure}
+\\Los resultados son: la solución óptima usa 7 vehículos y costo de rutas de: 909 mientras que nuestra solución es de 7 vehículos y 967 de costo en 37 segundos. Una muy buena solución, del tipo de lo que venímos encontrando en este tipo de casos con desviaciones de menos del 10 \% de la óptima.\\
+Inicialmente lo que obtenemos es un ruteo con 4 rutas y costo: 546, contra los 534 de la óptima, en 35 segundos de ejecución. Aumentando los flags que venimos utilizando a 5000 seguimos obteniendo un ruteo con 4 clusters y 546 de costo en 95234 ms $\approx$ 1 minuto y medio. En este caso es difícil generalizar la situación. El problema radica en que el cliente 22 tiene una demanda de 1500, por lo que agregarlo al cluster de la izquierda no es una opción. Lo que queda es agregarlo a los cluster de la derecha pero ahí surge un problema: los centroides de esos clusters están lo suficientemente alejados de este cliente como para que matcheen en algún momento. Por esa razón, el algoritmo termina decidiendo, despues de agotar las iteraciones, que hay que aumentar de 3 a 4 clusters y ahí si encuentra solución. \\
+Respecto de los tiempos, nos sirve para ver que junto con los casos anteriores, cuando los puntos no están tan uniformemente distribuídos los incrementos en tiempos de ejecución son mucho más leves.
+
+
+
+\bigskip
+\includegraphics[scale=.6]{graficos/F-n135-k7/cluster.png}
+\\
+\begin{figure}[!h]
+\caption{Clusterización test F-n135-k7}
+\end{figure}
+En este caso, no vemos beneficio en mostrar los caminos, sino simplemente la clusterización y la solución en sí. La clusterización se ve bastante parecido a lo que discutimos: al no tener tantos puntos problemáticos puede pensarse este dataset casi como un caso bueno para este algoritmo. Por otro lado, el resultado fue: 7 rutas de costo total de 1356 y ejecución en 1 minuto y la solución óptima es de 1162. La desviación es de 16 \% lo cual consideramos una buena calidad de solución.
+
+\bigskip
+Por último como caso curioso presentamos el E-n30-k3. Lo raro de este caso es que no pudimos clusterizar en 3 rutas sino en 4 con 546 de costo, y la solución óptima es de 534 de costo con 3 vehículos. Es curioso porque la cantidad de cluster es relativamente chica, la cantidad de clientes también y sin embargo incluso probando con aumentar los topes seguimos sin poder 
+mejorarla. Antes de explicar las teorías dejamos unos gráficos:
+
+\bigskip
+\includegraphics[scale=.6]{graficos/E-n30-k3/cluster.png}
+\\
+\begin{figure}[!h]
+\caption{Clusterización test E-n30-k3}
+\end{figure}
+
+El motivo tiene que ver con los clientes señalados: habíamos visto en anteriores instancias que había puntos problemáticos, que era posible que generaran muchas más iteraciones por las demandas que tienen y particularmente que podría afectar más a distribuciones heterogéneas debido a la 'falta' o 'lejanía' de vecinos para matchear en ciertos casos. En este caso sucede algo de este tipo, la capacidad del vehículo es 3100 y las demandas van de 0 a 3100, donde los clientes señalados tienen mucha más demanda que sus vecinos y por lo tanto al clusterizar generan problemas. 
